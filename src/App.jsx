@@ -70,7 +70,7 @@ export default function App() {
           <span className="badge-dot" />
           <span>Sinh nhật vui vẻ!</span>
         </div>
-        <h1 className="countdown-title">Đếm ngược sinh nhật 🎂</h1>
+        <h1 className="countdown-title">Đếm ngược sinh nhật <span className="cake">🎂</span></h1>
         <p className="countdown-subtitle">06/12/2003 → 06/12/2026 · Tuổi <span className="age-highlight">23</span></p>
       </header>
 

@@ -45,6 +45,7 @@ body::before {
 @keyframes twinkle { 0%,100%{opacity:.3} 50%{opacity:1} }
 
 .confetti { position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:0; }
+.cake { display:inline-block; font-size:1.15em; filter:drop-shadow(0 0 6px rgba(255,107,157,.6)); -webkit-text-fill-color:initial; color:initial; }
 .confetti-piece { position:absolute; top:-10px; left:calc(var(--i)*4.1% + 2%); width:8px; height:12px; border-radius:2px; opacity:.8; animation:confettiFall 7s linear infinite; animation-delay:calc(var(--i)*.25s); }
 .c0{background:#ff6b9d}.c1{background:#c084fc}.c2{background:#fbbf24}.c3{background:#34d399}.c4{background:#60a5fa}.c5{background:#fb7185}
 @keyframes confettiFall { 0%{transform:translateY(-10vh) rotate(0deg);opacity:.9} 100%{transform:translateY(110vh) rotate(360deg);opacity:.2} }
