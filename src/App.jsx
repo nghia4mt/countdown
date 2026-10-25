@@ -9,32 +9,29 @@ function pad2(n) {
 
 export default function App() {
   const [remaining, setRemaining] = useState({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-  });
-  const [isRunning, setIsRunning] = useState(true);
+      days: 0,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+    });
 
-  useEffect(() => {
-    if (!isRunning) return;
-    const interval = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = TARGET_DATE - now;
-      if (distance <= 0) {
-        setRemaining({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-        setIsRunning(false);
-        return;
-      }
-      setRemaining({
-        days: Math.floor(distance / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-        minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
-        seconds: Math.floor((distance % (1000 * 60)) / 1000),
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isRunning]);
+    useEffect(() => {
+      const interval = setInterval(() => {
+        const now = new Date().getTime();
+        const distance = TARGET_DATE - now;
+        if (distance <= 0) {
+          setRemaining({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+          return;
+        }
+        setRemaining({
+          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((distance % (1000 * 60)) / 1000),
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }, []);
 
   const isExpired = remaining.days === 0 && remaining.hours === 0 && remaining.minutes === 0 && remaining.seconds === 0;
 
@@ -59,7 +56,7 @@ export default function App() {
           <span>Sinh nhật vui vẻ!</span>
         </div>
         <h1 className="countdown-title">Đếm ngược sinh nhật 🎂</h1>
-        <p className="countdown-subtitle">Đến ngày 6/12/2026</p>
+        <p className="countdown-subtitle">06/12/2003 - 06/12/2026</p>
       </header>
 
       <div className="countdown-grid">
@@ -76,10 +73,6 @@ export default function App() {
           </div>
         ))}
       </div>
-
-      <button className="countdown-btn" onClick={() => setIsRunning(!isRunning)}>
-        {isExpired ? 'Bắt đầu lại' : isRunning ? 'Dừng' : 'Bắt đầu'}
-      </button>
 
       {isExpired && (
         <p className="countdown-expired">Chúc mừng sinh nhật! 🎉🎂🎈</p>
