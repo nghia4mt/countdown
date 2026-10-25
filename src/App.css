@@ -61,7 +61,7 @@ body::before {
   animation: fadeIn 0.8s ease-out;
 }
 
-@keyframes fadeIn {
+/* @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
@@ -92,10 +92,10 @@ body::before {
   height: 8px;
   background: var(--accent);
   border-radius: 50%;
-  animation: pulse 2s ease-in-out infinite;
+  opacity: 1;
 }
 
-@keyframes pulse {
+/* @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(0.8); }
 }
@@ -141,7 +141,7 @@ body::before {
   animation-delay: var(--delay, 0s);
 }
 
-@keyframes cardIn {
+/* @keyframes cardIn {
   from { opacity: 0; transform: translateY(30px) scale(0.95); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
@@ -229,7 +229,7 @@ body::before {
   font-weight: 600;
   font-size: 1.2rem;
   text-align: center;
-  animation: fadeIn 0.6s ease-out;
+  
 }
 
 /* ===== Responsive ===== */
