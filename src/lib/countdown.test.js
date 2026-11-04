@@ -17,9 +17,13 @@ import assert from 'node:assert/strict';
 import {
   TARGET_ISO,
   CAMPAIGN_START_ISO,
+  BIRTH_ISO,
   TARGET_MS,
   CAMPAIGN_START_MS,
   TARGET_LABEL,
+  BIRTH_LABEL,
+  TARGET_SLASH_LABEL,
+  BIRTHDAY_AGE,
   DAY_MS,
   HOUR_MS,
   MINUTE_MS,
@@ -300,6 +304,20 @@ test('formatDayMonthYear does not depend on the machine timezone', (t) => {
 
 test('TARGET_LABEL matches the target date', () => {
   assert.equal(TARGET_LABEL, '06 · 12 · 2026');
+});
+
+test('birthday copy matches the target date', () => {
+  assert.equal(BIRTH_LABEL, '06/12/2003');
+  assert.equal(TARGET_SLASH_LABEL, '06/12/2026');
+  assert.equal(BIRTHDAY_AGE, 23);
+  assert.equal(BIRTH_ISO, '2003-12-06T00:00:00+07:00');
+
+  // Formatted in the campaign timezone, so the day stays 06 (UTC would be 05).
+  assert.equal(formatDayMonthYear(Date.parse(BIRTH_ISO)), '06 · 12 · 2003');
+
+  const birth = new Date(BIRTH_ISO);
+  const target = new Date(TARGET_ISO);
+  assert.equal(target.getUTCFullYear() - birth.getUTCFullYear(), BIRTHDAY_AGE);
 });
 
 test('TARGET_ISO parses to the UTC instant 2026-12-05T17:00:00Z', () => {

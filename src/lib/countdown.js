@@ -13,6 +13,12 @@ export const CAMPAIGN_START_MS = Date.parse(CAMPAIGN_START_ISO);
 
 export const TARGET_LABEL = '06 · 12 · 2026';
 
+/** The birthday this page celebrates: 06/12/2003 → 06/12/2026. */
+export const BIRTH_ISO = '2003-12-06T00:00:00+07:00';
+export const BIRTH_LABEL = '06/12/2003';
+export const TARGET_SLASH_LABEL = '06/12/2026';
+export const BIRTHDAY_AGE = 23;
+
 export const DAY_MS = 86_400_000;
 export const HOUR_MS = 3_600_000;
 export const MINUTE_MS = 60_000;

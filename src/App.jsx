@@ -4,7 +4,14 @@ import { Celebration } from './components/Celebration.jsx';
 import { CountdownGrid } from './components/CountdownGrid.jsx';
 import { ProgressRail } from './components/ProgressRail.jsx';
 import { useCountdown } from './hooks/useCountdown.js';
-import { TARGET_LABEL, TARGET_MS, formatRemaining } from './lib/countdown.js';
+import {
+  BIRTHDAY_AGE,
+  BIRTH_LABEL,
+  TARGET_LABEL,
+  TARGET_MS,
+  TARGET_SLASH_LABEL,
+  formatRemaining,
+} from './lib/countdown.js';
 import './App.css';
 
 export default function App() {
@@ -19,7 +26,7 @@ export default function App() {
   }, [isExpired]);
 
   const state = isExpired ? 'expired' : 'running';
-  const statusText = isExpired ? 'Đã đến ngày' : 'Đang đếm ngược';
+  const statusText = isExpired ? 'Sinh nhật vui vẻ' : 'Đang đếm ngược';
 
   return (
     <div className="app">
@@ -32,18 +39,20 @@ export default function App() {
             {statusText}
           </p>
 
-          <p className="hero__eyebrow">Đếm ngược đến</p>
+          <p className="hero__eyebrow">Đếm ngược sinh nhật</p>
 
           <h1 className="hero__title">{TARGET_LABEL}</h1>
 
           <p className="hero__sub">
             {isExpired
-              ? 'Khoảnh khắc đã tới — cảm ơn bạn đã đồng hành từng giây.'
-              : 'Từng giây trôi qua là một bước gần hơn tới khoảnh khắc ấy.'}
+              ? `Chúc mừng sinh nhật! Hôm nay tròn ${BIRTHDAY_AGE} tuổi.`
+              : `${BIRTH_LABEL} → ${TARGET_SLASH_LABEL} · Tuổi ${BIRTHDAY_AGE}`}
           </p>
 
           <p className="sr-only" role="status" aria-live="off">
-            {isExpired ? 'Đã đến ngày 06 tháng 12 năm 2026.' : `Còn lại ${formatRemaining(remaining)}.`}
+            {isExpired
+              ? `Đã đến ngày 06 tháng 12 năm 2026 — sinh nhật lần thứ ${BIRTHDAY_AGE}.`
+              : `Còn lại ${formatRemaining(remaining)}.`}
           </p>
         </header>
 

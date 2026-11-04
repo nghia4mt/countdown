@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import confetti from 'canvas-confetti';
+import { BIRTHDAY_AGE } from '../lib/countdown.js';
 import './Celebration.css';
 
 const FLOATING_EMOJI = [
@@ -174,10 +175,10 @@ export function Celebration({ open, onDismiss }) {
               🎉
             </span>
             <h2 className="cel__title" id="cel-title">
-              Đã đến ngày!
+              Sinh nhật vui vẻ!
             </h2>
             <p className="cel__body" id="cel-body">
-              Chúc mừng — khoảnh khắc đã tới.
+              Chúc mừng — tròn {BIRTHDAY_AGE} tuổi, khoảnh khắc đã tới.
             </p>
             <button ref={dismissRef} type="button" className="cel__btn" onClick={dismiss}>
               Tuyệt vời

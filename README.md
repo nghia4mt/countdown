@@ -1,8 +1,8 @@
-# Aurora Countdown — đếm ngược đến 06 · 12 · 2026
+# Aurora Countdown — đếm ngược sinh nhật 06 · 12 · 2026
 
-Trang đếm ngược một màn hình, thiết kế lại theo hướng "space launch page": nền aurora
-chuyển động, thẻ số odometer bằng kính mờ, thanh tiến trình chiến dịch và màn ăn mừng
-confetti khi về đích.
+Trang đếm ngược một màn hình cho sinh nhật **06/12/2026** (từ 06/12/2003, tròn 23 tuổi),
+thiết kế theo hướng "space launch page": nền aurora chuyển động, thẻ số odometer bằng
+kính mờ, thanh tiến trình chiến dịch và màn ăn mừng confetti khi về đích.
 
 | Desktop | Mobile |
 | --- | --- |
@@ -134,7 +134,7 @@ Nền tối còn nội dung mất = CSS đã nạp nhưng React crash. Kiểm tr
 | Kiểm tra | Kết quả |
 | --- | --- |
 | `npm run lint` | 0 warning / 0 error |
-| `npm test` | 26/26 pass |
+| `npm test` | 27/27 pass |
 | `npm run build` | pass, 464 modules |
 | 1440×1000 / 834×1112 / 390×844 / 360×780 | không overflow ngang, không lỗi console |
 | Expired / reduced-motion | ảnh chụp đúng trạng thái, confetti bị tắt khi reduced |
