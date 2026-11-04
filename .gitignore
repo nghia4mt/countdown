@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Local verification artifacts (screenshots, browser profiles, npm cache)
+.shots
+.chrome-profile
+.chrome-shot-*
+.npm-cache
+.verify-*/
+.vite/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

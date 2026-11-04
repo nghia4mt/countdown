@@ -1,77 +1,77 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { BackgroundFX } from './components/BackgroundFX.jsx';
+import { Celebration } from './components/Celebration.jsx';
+import { CountdownGrid } from './components/CountdownGrid.jsx';
+import { ProgressRail } from './components/ProgressRail.jsx';
+import { useCountdown } from './hooks/useCountdown.js';
+import { TARGET_LABEL, TARGET_MS, formatRemaining } from './lib/countdown.js';
 import './App.css';
 
-const TARGET_DATE = new Date('2026-12-06T00:00:00').getTime();
-
-function pad2(n) {
-  return String(n).padStart(2, '0');
-}
-
 export default function App() {
-  const [remaining, setRemaining] = useState({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-  });
-  const [isRunning, setIsRunning] = useState(true);
+  const { remaining, progress, isExpired } = useCountdown(TARGET_MS);
+  const [isCelebrating, setIsCelebrating] = useState(false);
+  const celebratedRef = useRef(false);
 
   useEffect(() => {
-    if (!isRunning) return;
-    const interval = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = TARGET_DATE - now;
-      if (distance <= 0) {
-        setRemaining({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-        setIsRunning(false);
-        return;
-      }
-      setRemaining({
-        days: Math.floor(distance / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-        minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
-        seconds: Math.floor((distance % (1000 * 60)) / 1000),
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isRunning]);
+    if (!isExpired || celebratedRef.current) return;
+    celebratedRef.current = true;
+    setIsCelebrating(true);
+  }, [isExpired]);
 
-  const isExpired = remaining.days === 0 && remaining.hours === 0 && remaining.minutes === 0 && remaining.seconds === 0;
+  const state = isExpired ? 'expired' : 'running';
+  const statusText = isExpired ? 'Đã đến ngày' : 'Đang đếm ngược';
 
   return (
-    <div className="countdown-container">
-      <header className="countdown-header">
-        <div className="countdown-badge">
-          <span className="badge-dot" />
-          <span>Đếm ngược sự kiện</span>
-        </div>
-        <h1 className="countdown-title">Countdown</h1>
-        <p className="countdown-subtitle">Đến ngày 6/12/2026</p>
-      </header>
+    <div className="app">
+      <BackgroundFX />
 
-      <div className="countdown-grid">
-        {[
-          { value: remaining.days, label: 'Ngày', color: '#6c5ce7' },
-          { value: remaining.hours, label: 'Giờ', color: '#a29bfe' },
-          { value: remaining.minutes, label: 'Phút', color: '#fd79a8' },
-          { value: remaining.seconds, label: 'Giây', color: '#ffeaa7' },
-        ].map((item, i) => (
-          <div className="countdown-card" key={item.label} style={{ '--accent-color': item.color, '--delay': `${i * 0.1}s` }}>
-            <span className="countdown-value">
-              {isExpired ? '00' : pad2(item.value)}
-            </span>
-            <span className="countdown-label">{item.label}</span>
+      <main className="stage">
+        <header className="hero">
+          <p className="hero__badge" data-state={state}>
+            <span className="hero__pulse" aria-hidden="true" />
+            {statusText}
+          </p>
+
+          <p className="hero__eyebrow">Đếm ngược đến</p>
+
+          <h1 className="hero__title">{TARGET_LABEL}</h1>
+
+          <p className="hero__sub">
+            {isExpired
+              ? 'Khoảnh khắc đã tới — cảm ơn bạn đã đồng hành từng giây.'
+              : 'Từng giây trôi qua là một bước gần hơn tới khoảnh khắc ấy.'}
+          </p>
+
+          <p className="sr-only" role="status" aria-live="off">
+            {isExpired ? 'Đã đến ngày 06 tháng 12 năm 2026.' : `Còn lại ${formatRemaining(remaining)}.`}
+          </p>
+        </header>
+
+        <CountdownGrid remaining={remaining} isExpired={isExpired} />
+
+        <ProgressRail progress={progress} isExpired={isExpired} />
+
+        {isExpired ? (
+          <div className="actions">
+            <button type="button" className="btn btn--primary" onClick={() => setIsCelebrating(true)}>
+              <span className="btn__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" />
+                </svg>
+              </span>
+              Xem lại khoảnh khắc
+            </button>
           </div>
-        ))}
-      </div>
+        ) : null}
 
-      <button className="countdown-btn" onClick={() => setIsRunning(!isRunning)}>
-        {isExpired ? 'Bắt đầu lại' : isRunning ? 'Dừng' : 'Bắt đầu'}
-      </button>
+        <p className="footnote">
+          <span>GMT+7 · Asia/Bangkok</span>
+          <span className="footnote__dot" aria-hidden="true" />
+          <span>{isExpired ? 'Đã đến đích' : 'Đồng bộ mỗi giây'}</span>
+        </p>
+      </main>
 
-      {isExpired && (
-        <p className="countdown-expired">Đã đến ngày 6/12/2026 🎉</p>
-      )}
+      <Celebration open={isCelebrating} onDismiss={() => setIsCelebrating(false)} />
     </div>
   );
 }

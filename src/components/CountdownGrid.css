@@ -1,0 +1,25 @@
+/* ============================================================
+   CountdownGrid — 4-up desktop, 2x2 below 720px. Owner: ui-digits.
+   No separators: the cards carry the composition.
+   ============================================================ */
+
+.cg {
+  width: 100%;
+  min-width: 0;
+}
+
+.cg__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  gap: clamp(10px, 1.35vw, 20px);
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 719px) {
+  .cg__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(10px, 2.6vw, 16px);
+  }
+}

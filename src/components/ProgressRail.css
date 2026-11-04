@@ -1,0 +1,303 @@
+/* ============================================================
+   ProgressRail — precision campaign rail. Owner: ui-atmosphere.
+   Animated properties: transform, opacity only.
+   ============================================================ */
+
+.pr {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+}
+
+/* ---------- meta row ---------- */
+
+.pr__meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pr__meta-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--ink-faint);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.pr__meta-label::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cyan-soft);
+  box-shadow: 0 0 10px var(--cyan-soft);
+}
+
+.pr__meta-value {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  min-width: 3.4ch;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 2.1vw, 1.32rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pr__pct {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+}
+
+/* ---------- track + rail ---------- */
+
+.pr__track {
+  position: relative;
+  margin: 2px 0;
+}
+
+.pr__rail {
+  position: relative;
+  height: 10px;
+  border: 1px solid var(--stroke);
+  border-radius: var(--r-pill);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-0) 62%, transparent),
+      color-mix(in srgb, var(--bg-2) 78%, transparent)
+    );
+  box-shadow:
+    inset 0 1px 3px color-mix(in srgb, var(--bg-0) 82%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--ink) 3%, transparent);
+}
+
+.pr__fill {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  transform-origin: left center;
+  will-change: transform;
+  background: linear-gradient(
+    90deg,
+    var(--violet) 0%,
+    var(--cyan) 34%,
+    var(--pink) 68%,
+    var(--amber) 100%
+  );
+  box-shadow:
+    0 0 18px -2px color-mix(in srgb, var(--violet) 70%, transparent),
+    0 0 26px -6px color-mix(in srgb, var(--cyan) 60%, transparent);
+}
+
+/* glass sheen along the top edge of the fill */
+.pr__fill::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--ink) 70%, transparent) 45%,
+    transparent
+  );
+  opacity: 0.75;
+}
+
+.pr__shimmer {
+  position: absolute;
+  top: -50%;
+  bottom: -50%;
+  left: 0;
+  width: 36%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    color-mix(in srgb, var(--ink) 72%, transparent) 50%,
+    transparent
+  );
+  mix-blend-mode: screen;
+  opacity: 0.5;
+  transform: translateX(-150%) skewX(-18deg);
+  animation: pr-shimmer 3.8s var(--ease-out) infinite;
+  will-change: transform;
+}
+
+@keyframes pr-shimmer {
+  0% {
+    transform: translateX(-150%) skewX(-18deg);
+  }
+  60%,
+  100% {
+    transform: translateX(430%) skewX(-18deg);
+  }
+}
+
+/* ---------- 25 / 50 / 75 graduation marks ---------- */
+
+.pr__tick {
+  position: absolute;
+  top: -3px;
+  width: 1px;
+  height: 16px;
+  background: color-mix(in srgb, var(--ink) 22%, transparent);
+  z-index: 2;
+}
+
+/* ---------- glowing head dot ---------- */
+
+.pr__head-layer {
+  position: absolute;
+  top: 0;
+  left: 7px;
+  right: 7px;
+  height: 10px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.pr__head-slot {
+  position: absolute;
+  inset: 0;
+}
+
+.pr__head {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle at 34% 28%,
+    var(--ink) 0%,
+    var(--cyan-soft) 42%,
+    var(--violet-soft) 82%
+  );
+  box-shadow:
+    0 0 12px color-mix(in srgb, var(--cyan-soft) 85%, transparent),
+    0 0 26px color-mix(in srgb, var(--violet) 75%, transparent);
+}
+
+.pr__head::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--cyan-soft) 70%, transparent);
+  animation: pr-head-pulse 2.4s var(--ease-out) infinite;
+}
+
+@keyframes pr-head-pulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.9;
+  }
+  70%,
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+/* ---------- dates under the rail ---------- */
+
+.pr__dates {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pr__date {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.pr__date--end {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.pr__date-label {
+  color: var(--ink-faint);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.pr__date-value {
+  color: var(--ink-dim);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- expired ---------- */
+
+.pr--expired .pr__meta-label::before {
+  background: var(--success);
+  box-shadow: 0 0 10px var(--success);
+}
+
+/* ---------- mobile ---------- */
+
+@media (max-width: 720px) {
+  .pr {
+    gap: 10px;
+  }
+
+  .pr__meta-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+  }
+
+  .pr__date-label {
+    font-size: 0.56rem;
+    letter-spacing: 0.14em;
+  }
+
+  .pr__date-value {
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+  }
+
+  .pr__tick {
+    height: 14px;
+    top: -2px;
+  }
+}
+
+/* ---------- reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .pr__shimmer {
+    animation: none;
+    opacity: 0;
+  }
+
+  .pr__head::after {
+    animation: none;
+    opacity: 0.35;
+    transform: scale(1.35);
+  }
+}

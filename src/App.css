@@ -1,300 +1,337 @@
-:root {
-  --bg: #0a0e1a;
-  --bg-gradient: radial-gradient(ellipse at top, #1a1f3a 0%, #0a0e1a 70%);
-  --card: rgba(22, 26, 42, 0.7);
-  --card-border: rgba(108, 92, 231, 0.2);
-  --text: #e8eaf0;
-  --text-dim: #9b9fa7;
-  --accent: #6c5ce7;
-  --accent-glow: rgba(108, 92, 231, 0.4);
-  --accent-bg: rgba(108, 92, 231, 0.12);
-  --border: #2a2f42;
-  --shadow: rgba(0, 0, 0, 0.4);
-  --glass: rgba(255, 255, 255, 0.03);
-  --radius: 20px;
-}
+/* ============================================================
+   App shell — layout, hero, actions. Owner: Lead.
+   Every animated property is transform / opacity only.
+   ============================================================ */
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  margin: 0;
-  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: var(--bg-gradient);
-  color: var(--text);
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 24px;
-  overflow-x: hidden;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle at 30% 20%, rgba(108, 92, 231, 0.08) 0%, transparent 50%),
-              radial-gradient(circle at 70% 80%, rgba(253, 121, 168, 0.06) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-#root {
-  width: 100%;
-  text-align: center;
+.app {
   position: relative;
-  z-index: 1;
+  display: grid;
+  /* An implicit `auto` grid track sizes to max-content and would overflow a
+     360–430px viewport (clipped by overflow: hidden). Pin the track instead. */
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  min-height: 100dvh;
+  padding: clamp(28px, 5vw, 64px) clamp(16px, 4vw, 48px);
+  overflow: hidden;
+  isolation: isolate;
 }
 
-.countdown-container {
+.stage {
+  position: relative;
+  z-index: var(--z-content);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(26px, 3.6vw, 44px);
   width: 100%;
-  max-width: 780px;
-  margin: 0 auto;
-  padding: 40px 20px;
-  animation: fadeIn 0.8s ease-out;
-}
-
-/* @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.countdown-header {
+  max-width: 1060px;
+  min-width: 0;
   text-align: center;
-  margin-bottom: 48px;
 }
 
-.countdown-badge {
+/* ---------- hero ---------- */
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  max-width: 920px;
+}
+
+.hero__badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 16px;
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-glow);
-  border-radius: 100px;
-  font-size: 0.8rem;
-  color: var(--accent);
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  gap: 10px;
+  padding: 9px 16px 9px 13px;
+  border: 1px solid color-mix(in srgb, var(--violet) 30%, transparent);
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--violet) 10%, transparent);
+  color: var(--violet-soft);
+  font-size: 0.72rem;
   font-weight: 600;
-  margin-bottom: 20px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  animation: hero-in 0.8s var(--ease-out) both;
 }
 
-.badge-dot {
-  width: 8px;
-  height: 8px;
-  background: var(--accent);
+.hero__pulse {
+  position: relative;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  opacity: 1;
+  background: currentColor;
+  box-shadow: 0 0 12px currentColor;
 }
 
-/* @keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
-}
-
-.countdown-title {
-  font-size: clamp(2.5rem, 8vw, 4rem);
-  font-weight: 800;
-  letter-spacing: -1px;
-  margin: 0 0 8px;
-  background: linear-gradient(135deg, #e8eaf0 0%, #a29bfe 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.countdown-subtitle {
-  font-size: 1.1rem;
-  color: var(--text-dim);
-  margin: 0;
-  font-weight: 400;
-}
-
-.countdown-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin: 32px 0;
-}
-
-.countdown-card {
-  background: var(--card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius);
-  padding: 28px 12px 20px;
-  text-align: center;
-  box-shadow: 0 8px 32px var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  animation: cardIn 0.6s ease-out backwards;
-  animation-delay: var(--delay, 0s);
-}
-
-/* @keyframes cardIn {
-  from { opacity: 0; transform: translateY(30px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.countdown-card::before {
+.hero__pulse::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--accent-color, var(--accent));
-  opacity: 0.8;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  opacity: 0.55;
+  animation: hero-pulse 2.4s var(--ease-out) infinite;
 }
 
-.countdown-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px var(--shadow), 0 0 0 1px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+.hero__badge[data-state='expired'] {
+  border-color: color-mix(in srgb, var(--success) 35%, transparent);
+  background: color-mix(in srgb, var(--success) 10%, transparent);
+  color: var(--success);
 }
 
-.countdown-value {
-  display: block;
-  font-size: clamp(2.5rem, 8vw, 4.5rem);
-  font-weight: 800;
-  color: var(--accent-color, var(--accent));
-  line-height: 1;
-  letter-spacing: -2px;
-  font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 30px var(--accent-glow);
-}
-
-.countdown-label {
-  display: block;
-  font-size: 0.8rem;
-  color: var(--text-dim);
-  margin-top: 8px;
+.hero__eyebrow {
+  color: var(--ink-faint);
+  font-size: clamp(0.7rem, 1.3vw, 0.82rem);
+  font-weight: 600;
+  letter-spacing: 0.34em;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  font-weight: 600;
+  animation: hero-in 0.8s var(--ease-out) 0.07s both;
 }
 
-.countdown-btn {
-  margin-top: 40px;
-  padding: 14px 40px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, var(--accent) 0%, #a29bfe 100%);
-  border: none;
-  border-radius: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 20px var(--accent-glow);
+/* Static gradient: a looping background-position animation repaints the whole
+   heading every frame and violates the "compositor-only" contract rule. */
+.hero__title {
+  font-family: var(--font-display);
+  font-size: clamp(2.55rem, 8.4vw, 5.6rem);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  background-image: linear-gradient(
+    100deg,
+    var(--white) 0%,
+    var(--violet-soft) 30%,
+    var(--cyan-soft) 56%,
+    var(--pink-soft) 82%,
+    var(--white) 100%
+  );
+  background-size: 220% 100%;
+  background-position: 30% 50%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-wrap: balance;
+  animation: hero-in 0.9s var(--ease-out) 0.14s both;
+}
+
+.hero__sub {
+  max-width: 44ch;
+  color: var(--ink-dim);
+  font-size: clamp(0.94rem, 1.6vw, 1.06rem);
+  line-height: 1.65;
+  text-wrap: balance;
+  animation: hero-in 0.9s var(--ease-out) 0.21s both;
+}
+
+/* ---------- actions ---------- */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+
+.btn {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 0 30px;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
   overflow: hidden;
+  transition:
+    transform var(--dur) var(--ease-spring),
+    box-shadow var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out),
+    background-color var(--dur) var(--ease-out);
 }
 
-.countdown-btn::after {
+.btn--primary {
+  color: var(--ink-inverse);
+  background: linear-gradient(120deg, var(--violet-soft), var(--cyan-soft) 54%, var(--pink-soft));
+  box-shadow:
+    0 20px 44px -20px color-mix(in srgb, var(--violet) 95%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--white) 45%, transparent);
+}
+
+.btn--primary::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: -100%;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    color-mix(in srgb, var(--white) 55%, transparent) 50%,
+    transparent 65%
+  );
+  transform: translateX(-120%);
+  transition: transform 700ms var(--ease-out);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn--primary:hover {
+  box-shadow:
+    0 26px 60px -22px var(--violet),
+    inset 0 1px 0 color-mix(in srgb, var(--white) 55%, transparent);
+}
+
+.btn--primary:hover::after,
+.btn--primary:focus-visible::after {
+  transform: translateX(120%);
+}
+
+.btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn__icon {
+  display: inline-flex;
+  width: 1em;
+  height: 1em;
+  flex: none;
+}
+
+.btn__icon svg {
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s ease;
 }
 
-.countdown-btn:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 30px var(--accent-glow);
+/* ---------- footnote ---------- */
+
+.footnote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--ink-faint);
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
-.countdown-btn:hover::after {
-  left: 100%;
+.footnote__dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
 }
 
-.countdown-btn:active {
-  transform: scale(0.98);
+/* ---------- keyframes ---------- */
+
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.countdown-expired {
-  margin-top: 24px;
-  color: #4ade80;
-  font-weight: 600;
-  font-size: 1.2rem;
-  text-align: center;
-  
+@keyframes hero-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
 }
 
-/* ===== Responsive ===== */
-@media (max-width: 640px) {
-  .countdown-container {
-    padding: 24px 16px;
+/* ---------- responsive ---------- */
+
+@media (max-width: 720px) {
+  .stage {
+    gap: 28px;
   }
 
-  .countdown-header {
-    margin-bottom: 32px;
+  .hero {
+    gap: 14px;
   }
 
-  .countdown-title {
-    font-size: 2.2rem;
+  .hero__badge {
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    padding: 8px 14px 8px 11px;
   }
 
-  .countdown-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin: 24px 0;
+  .actions {
+    width: 100%;
+    gap: 10px;
   }
 
-  .countdown-card {
-    padding: 20px 8px 16px;
-    border-radius: 16px;
+  .btn {
+    flex: 1 1 160px;
+    max-width: 260px;
+    padding: 0 22px;
   }
 
-  .countdown-value {
-    font-size: 2.8rem;
-  }
-
-  .countdown-label {
-    font-size: 0.7rem;
-    letter-spacing: 1.5px;
-  }
-
-  .countdown-btn {
-    padding: 12px 32px;
-    font-size: 0.95rem;
+  .footnote {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
   }
 }
 
 @media (max-width: 380px) {
-  .countdown-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+  .app {
+    padding-block: 20px;
   }
 
-  .countdown-card {
-    padding: 16px 6px 12px;
+  .stage {
+    gap: 22px;
   }
 
-  .countdown-value {
-    font-size: 2.2rem;
+  .hero__title {
+    font-size: 2.35rem;
+  }
+
+  .btn {
+    flex-basis: 100%;
+    max-width: none;
   }
 }
 
-/* ===== Reduced motion ===== */
+/* ---------- reduced motion ---------- */
+
 @media (prefers-reduced-motion: reduce) {
-  .countdown-card,
-  .countdown-container,
-  .countdown-expired {
+  .hero__badge,
+  .hero__eyebrow,
+  .hero__title,
+  .hero__sub {
     animation: none;
   }
-  .countdown-btn::after {
-    display: none;
+
+  .hero__pulse::after {
+    animation: none;
+    opacity: 0;
+  }
+
+  .btn,
+  .btn--primary::after {
+    transition: none;
+    transform: none;
   }
 }

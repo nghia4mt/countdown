@@ -1,0 +1,236 @@
+/* ============================================================
+   BackgroundFX — aurora atmosphere. Owner: ui-atmosphere.
+   Only transform / opacity / filter are animated.
+   ============================================================ */
+
+.bgfx {
+  --bgfx-grid-line: color-mix(in srgb, var(--ink) 7%, transparent);
+  --bgfx-grid-size: 72px;
+
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-bg);
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 86% 60% at 50% -14%,
+      color-mix(in srgb, var(--violet) 26%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      ellipse 64% 52% at 98% 106%,
+      color-mix(in srgb, var(--cyan) 16%, transparent),
+      transparent 64%
+    ),
+    radial-gradient(
+      ellipse 58% 46% at 0% 100%,
+      color-mix(in srgb, var(--pink) 13%, transparent),
+      transparent 66%
+    ),
+    linear-gradient(178deg, var(--bg-1) 0%, var(--bg-0) 54%, var(--bg-2) 100%);
+}
+
+/* ---------- aurora blobs ---------- */
+
+.bgfx__aurora {
+  position: absolute;
+  inset: 0;
+}
+
+.bgfx__blob {
+  position: absolute;
+  display: block;
+  width: min(64vw, 860px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  opacity: 0.85;
+  mix-blend-mode: screen;
+  filter: blur(92px);
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+}
+
+.bgfx__blob--violet {
+  top: -24%;
+  left: 2%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in srgb, var(--violet) 56%, transparent) 0%,
+    color-mix(in srgb, var(--violet) 24%, transparent) 42%,
+    transparent 72%
+  );
+  animation: bgfx-drift-a 24s ease-in-out infinite;
+}
+
+.bgfx__blob--cyan {
+  right: -18%;
+  bottom: -26%;
+  width: min(58vw, 780px);
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in srgb, var(--cyan) 42%, transparent) 0%,
+    color-mix(in srgb, var(--cyan) 13%, transparent) 46%,
+    transparent 74%
+  );
+  filter: blur(106px);
+  animation: bgfx-drift-b 30s ease-in-out infinite;
+  animation-delay: -9s;
+}
+
+.bgfx__blob--pink {
+  left: -14%;
+  bottom: -20%;
+  width: min(44vw, 600px);
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in srgb, var(--pink) 40%, transparent) 0%,
+    color-mix(in srgb, var(--amber) 10%, transparent) 48%,
+    transparent 74%
+  );
+  filter: blur(82px);
+  animation: bgfx-drift-c 19s ease-in-out infinite;
+  animation-delay: -4s;
+}
+
+@keyframes bgfx-drift-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(6%, 4%, 0) scale(1.12);
+  }
+  66% {
+    transform: translate3d(-5%, -3%, 0) scale(0.94);
+  }
+}
+
+@keyframes bgfx-drift-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  40% {
+    transform: translate3d(-7%, -5%, 0) scale(1.16);
+  }
+  72% {
+    transform: translate3d(4%, 3%, 0) scale(0.92);
+  }
+}
+
+@keyframes bgfx-drift-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(8%, -6%, 0) scale(1.1);
+  }
+}
+
+/* ---------- star canvas ---------- */
+
+.bgfx__stars {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-stars);
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ---------- precision grid ---------- */
+
+.bgfx__grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.7;
+  background-image:
+    linear-gradient(to right, var(--bgfx-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--bgfx-grid-line) 1px, transparent 1px);
+  background-size: var(--bgfx-grid-size) var(--bgfx-grid-size);
+  background-position: center top;
+  -webkit-mask-image: radial-gradient(ellipse 70% 56% at 50% 40%, black 8%, transparent 76%);
+  mask-image: radial-gradient(ellipse 70% 56% at 50% 40%, black 8%, transparent 76%);
+}
+
+/* ---------- film grain ---------- */
+
+.bgfx__grain {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 0.035;
+  mix-blend-mode: soft-light;
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNDAnIGhlaWdodD0nMjQwJz48ZmlsdGVyIGlkPSduJz48ZmVUdXJidWxlbmNlIHR5cGU9J2ZyYWN0YWxOb2lzZScgYmFzZUZyZXF1ZW5jeT0nMC44MicgbnVtT2N0YXZlcz0nMycgc3RpdGNoVGlsZXM9J3N0aXRjaCcvPjxmZUNvbG9yTWF0cml4IHR5cGU9J3NhdHVyYXRlJyB2YWx1ZXM9JzAnLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0nMjQwJyBoZWlnaHQ9JzI0MCcgZmlsdGVyPSd1cmwoI24pJyBvcGFjaXR5PScwLjU1Jy8+PC9zdmc+');
+  background-repeat: repeat;
+  background-size: 240px 240px;
+}
+
+/* ---------- vignette ---------- */
+
+.bgfx__vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background:
+    radial-gradient(
+      ellipse 118% 88% at 50% 42%,
+      transparent 46%,
+      color-mix(in srgb, var(--bg-0) 58%, transparent) 100%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-0) 45%, transparent) 0%,
+      transparent 18%,
+      transparent 80%,
+      color-mix(in srgb, var(--bg-0) 52%, transparent) 100%
+    );
+}
+
+/* ---------- mobile: fewer, softer blobs ---------- */
+
+@media (max-width: 720px) {
+  .bgfx__blob {
+    filter: blur(58px);
+    opacity: 0.7;
+  }
+
+  .bgfx__blob--violet {
+    top: -16%;
+    left: -16%;
+    width: 88vw;
+  }
+
+  .bgfx__blob--cyan {
+    right: -24%;
+    bottom: -16%;
+    width: 84vw;
+    filter: blur(64px);
+  }
+
+  .bgfx__blob--pink {
+    display: none;
+  }
+
+  .bgfx__grid {
+    --bgfx-grid-size: 54px;
+    opacity: 0.55;
+  }
+
+  .bgfx__grain {
+    background-size: 180px 180px;
+  }
+}
+
+/* ---------- reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .bgfx__blob {
+    animation: none;
+    transform: none;
+  }
+}
