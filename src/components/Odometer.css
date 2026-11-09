@@ -1,0 +1,50 @@
+/* ---------- odometer digits ---------- */
+
+/* Colour, size, weight and glow all come from the parent (.cc__digits,
+   .pr__pct). This block only owns the rolling mechanic. */
+.odo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: inherit;
+}
+
+.odo__col {
+  position: relative;
+  display: block;
+  /* One tabular figure wide, one line tall: the width never changes between
+     ticks, so the card cannot reflow while the roller moves. */
+  width: 1ch;
+  height: 1em;
+  overflow: hidden;
+  text-align: center;
+}
+
+/* Ten digit cells stacked; the inline transform translates by whole cells. */
+.odo__strip {
+  display: block;
+  transition: transform var(--dur-slow) var(--ease-spring);
+  /* A hint only while the digits are actually swapping would need JS; the
+     strip is small enough that the compositor promotion during the
+     transition is enough. */
+}
+
+.odo__digit {
+  display: block;
+  height: 1em;
+  line-height: 1em;
+  text-align: center;
+  /* Kill inherited tracking inside the fixed 1ch cell: letter-spacing is added
+     after the glyph and would push the digit off-centre. Spacing between
+     columns is therefore the tabular side bearing. */
+  letter-spacing: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Snap straight to the new digit when the user asked for less motion. */
+  .odo__strip {
+    transition: none;
+  }
+}

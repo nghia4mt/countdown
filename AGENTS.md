@@ -8,6 +8,10 @@ React 19 + Vite 8, JavaScript/JSX thuần (không TypeScript). Ứng dụng ch�
 đếm ngược tới **06 · 12 · 2026**. Code chia theo component, style tách file riêng,
 design token nằm trong `src/index.css`.
 
+Nền trang có một lớp WebGL three.js (`src/components/NebulaScene.jsx`: 3 lớp sao theo
+chiều sâu, 2 quỹ đạo, tinh vân, parallax theo con trỏ) và tự hạ cấp về canvas 2D
+(`StarField.jsx`) khi trình duyệt không có WebGL. Mọi thứ vẫn phải chạy offline sau build.
+
 ## Lệnh
 
 ```powershell
@@ -29,9 +33,12 @@ npm run build
 
 ## Quy ước
 
-- **Không tự ý thêm dependency.** Thư viện hiện có: `motion`, `@number-flow/react`,
-  `canvas-confetti`, `@fontsource-variable/*`. Hỏi trước khi thêm gói mới hoặc chạy
-  `npm install`.
+- **Không tự ý thêm dependency.** Thư viện hiện có: `@fontsource-variable/inter`,
+  `@fontsource-variable/space-grotesk`, `react`, `react-dom`, và `three` (chỉ dùng cho nền
+  WebGL, được `import()` động nên không nằm trong chunk đầu). **Không dùng thư viện
+  animation** — mọi chuyển động viết bằng CSS + JS thuần (`src/components/Odometer.jsx`,
+  `src/lib/use-reduced-motion.js`, `src/lib/confetti.js`). Hỏi trước khi thêm gói mới hoặc
+  chạy `npm install`.
 - **Design token, không hard-code màu.** Dùng biến trong `src/index.css`.
   Component CSS dùng prefix class riêng (`cc` cho card, `cg` cho grid, `pr` cho rail,
   `bgfx` cho background, `cel` cho celebration); shell dùng `app/stage/hero/btn`.
@@ -49,8 +56,11 @@ npm run build
 3. `npm run build` — pass.
 4. Chụp ảnh 360/390/1440 và kiểm tra không overflow ngang, không lỗi console:
    `node scripts/shot.mjs --width 390 --height 844 --out .shots/mobile.png --mobile`
-   (cần Chrome chạy ngoài sandbox).
-5. Nếu sửa animation: chụp thêm `--expired --reduced` để chắc confetti/chuyển động bị tắt.
+   (cần Chrome chạy ngoài sandbox). JSON trả về có block `nebula`; với nền 3D phải là
+   `{"canvas":true,"webgl":true,"fallback":false}`, còn `fallback:true` nghĩa là WebGL
+   không chạy và trang đang dùng canvas 2D.
+5. Nếu sửa animation: chụp thêm `--expired --reduced` để chắc confetti/chuyển động bị tắt;
+   nếu sửa lớp WebGL, chụp thêm `--toggle-reduced` để chắc scene tự dựng lại ở chế độ tĩnh.
 
 Không báo "đã chạy" nếu chưa chạy lệnh; ghi rõ phần chưa kiểm chứng.
 

@@ -1,6 +1,6 @@
 /* ============================================================
    BackgroundFX — aurora atmosphere. Owner: ui-atmosphere.
-   Only transform / opacity / filter are animated.
+   Only transform / opacity are animated.
    ============================================================ */
 
 .bgfx {
@@ -46,7 +46,6 @@
   border-radius: 50%;
   opacity: 0.85;
   mix-blend-mode: screen;
-  filter: blur(92px);
   will-change: transform;
   transform: translate3d(0, 0, 0);
 }
@@ -55,9 +54,9 @@
   top: -24%;
   left: 2%;
   background: radial-gradient(
-    circle at 50% 50%,
-    color-mix(in srgb, var(--violet) 56%, transparent) 0%,
-    color-mix(in srgb, var(--violet) 24%, transparent) 42%,
+    closest-side,
+    color-mix(in srgb, var(--violet) 50%, transparent) 0%,
+    color-mix(in srgb, var(--violet) 20%, transparent) 45%,
     transparent 72%
   );
   animation: bgfx-drift-a 24s ease-in-out infinite;
@@ -68,12 +67,11 @@
   bottom: -26%;
   width: min(58vw, 780px);
   background: radial-gradient(
-    circle at 50% 50%,
-    color-mix(in srgb, var(--cyan) 42%, transparent) 0%,
-    color-mix(in srgb, var(--cyan) 13%, transparent) 46%,
-    transparent 74%
+    closest-side,
+    color-mix(in srgb, var(--cyan) 38%, transparent) 0%,
+    color-mix(in srgb, var(--cyan) 11%, transparent) 45%,
+    transparent 72%
   );
-  filter: blur(106px);
   animation: bgfx-drift-b 30s ease-in-out infinite;
   animation-delay: -9s;
 }
@@ -83,12 +81,11 @@
   bottom: -20%;
   width: min(44vw, 600px);
   background: radial-gradient(
-    circle at 50% 50%,
-    color-mix(in srgb, var(--pink) 40%, transparent) 0%,
-    color-mix(in srgb, var(--amber) 10%, transparent) 48%,
-    transparent 74%
+    closest-side,
+    color-mix(in srgb, var(--pink) 36%, transparent) 0%,
+    color-mix(in srgb, var(--amber) 9%, transparent) 45%,
+    transparent 72%
   );
-  filter: blur(82px);
   animation: bgfx-drift-c 19s ease-in-out infinite;
   animation-delay: -4s;
 }
@@ -195,7 +192,6 @@
 
 @media (max-width: 720px) {
   .bgfx__blob {
-    filter: blur(58px);
     opacity: 0.7;
   }
 
@@ -209,7 +205,6 @@
     right: -24%;
     bottom: -16%;
     width: 84vw;
-    filter: blur(64px);
   }
 
   .bgfx__blob--pink {

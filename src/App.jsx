@@ -30,7 +30,11 @@ export default function App() {
 
   return (
     <div className="app">
-      <BackgroundFX />
+      <BackgroundFX
+        celebrating={isCelebrating}
+        expired={isExpired}
+        tick={remaining.minutes}
+      />
 
       <main className="stage">
         <header className="hero">
@@ -61,7 +65,7 @@ export default function App() {
         <ProgressRail progress={progress} isExpired={isExpired} />
 
         {isExpired ? (
-          <div className="actions">
+          <div className="actions" data-celebrating={isCelebrating ? '' : undefined}>
             <button type="button" className="btn btn--primary" onClick={() => setIsCelebrating(true)}>
               <span className="btn__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -76,7 +80,7 @@ export default function App() {
         <p className="footnote">
           <span>GMT+7 · Asia/Bangkok</span>
           <span className="footnote__dot" aria-hidden="true" />
-          <span>{isExpired ? 'Đã đến đích' : 'Đồng bộ mỗi giây'}</span>
+          <span>{isExpired ? 'Đã đến đích' : 'Đồng bộ mỗi phút'}</span>
         </p>
       </main>
 

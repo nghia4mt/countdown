@@ -1,0 +1,21 @@
+/* ============================================================
+   NebulaScene — three.js WebGL layer inside BackgroundFX.
+   The canvas is transparent; every colour comes from CSS tokens.
+   Decorative only: aria-hidden, pointer-events: none.
+   ============================================================ */
+
+.nb {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-stars);
+  pointer-events: none;
+  overflow: hidden;
+  /* Isolate the WebGL surface from the rest of the stacking context. */
+  contain: layout paint;
+}
+
+.nb__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

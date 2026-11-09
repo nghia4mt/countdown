@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import confetti from 'canvas-confetti';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useReducedMotion } from '../lib/use-reduced-motion.js';
+import { burstConfetti } from '../lib/confetti.js';
 import { BIRTHDAY_AGE } from '../lib/countdown.js';
 import './Celebration.css';
 
@@ -12,55 +12,94 @@ const FLOATING_EMOJI = [
   { glyph: '✨', left: '50%', top: '6%', delay: '1.6s', size: '0.9rem' },
 ];
 
-/** Read the overlay depth token so confetti always lands above the dialog. */
-function readOverlayZIndex() {
-  const raw = window.getComputedStyle(document.documentElement).getPropertyValue('--z-overlay').trim();
-  const parsed = Number.parseInt(raw, 10);
-  return Number.isNaN(parsed) ? 120 : parsed + 10;
-}
-
-/** Hook first, media query as the guard for the very first paint. */
-function prefersReducedMotion() {
-  return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    : false;
-}
+/**
+ * Longest exit animation (overlay fade, 260ms) plus a little slack. Used as the
+ * `setTimeout` fallback for when `animationend` never fires — most notably under
+ * `prefers-reduced-motion`, where every animation is `none`.
+ */
+const EXIT_FALLBACK_MS = 320;
 
 /** Confetti palette pulled from the design tokens (never hard-coded colours). */
 function readConfettiPalette() {
+  if (typeof window === 'undefined') return [];
   const styles = window.getComputedStyle(document.documentElement);
   return ['--violet', '--cyan', '--pink', '--amber', '--ink']
     .map((token) => styles.getPropertyValue(token).trim())
     .filter(Boolean);
 }
 
-/** Cancel any in-flight confetti without requiring the library's reset helper. */
-function stopConfetti() {
-  if (typeof confetti.reset === 'function') confetti.reset();
-}
-
 /**
  * Expiry celebration: glass dialog over a blurred backdrop, one confetti volley
  * per open, Escape/backdrop dismiss, focus moved in and restored on close.
+ *
+ * Mount/unmount is driven by CSS instead of a JS animation library: `open` mounts
+ * the overlay, `open` going false flips it into `cel--closing`, and the node is
+ * removed once the exit animation ends (with a timer fallback).
  */
 export function Celebration({ open, onDismiss }) {
-  const reducedMotion = useReducedMotion();
-  const reduceMotion = Boolean(reducedMotion) || prefersReducedMotion();
+  const reduceMotion = useReducedMotion();
+  // `exiting` keeps the overlay mounted while the CSS exit animation plays.
+  const [exiting, setExiting] = useState(false);
+  const [wasOpen, setWasOpen] = useState(open);
+  const rootRef = useRef(null);
   const dismissRef = useRef(null);
+  const canvasRef = useRef(null);
   const previousFocusRef = useRef(null);
   const onDismissRef = useRef(onDismiss);
   const firedRef = useRef(false);
+  const exitTimerRef = useRef(0);
 
   useEffect(() => {
     onDismissRef.current = onDismiss;
   });
 
-  // Focus, scroll lock and keyboard: Escape dismisses, Tab stays inside.
-  useEffect(() => {
-    if (!open) return undefined;
+  // React's documented "adjust state while rendering" pattern: react to the
+  // `open` prop without an effect, so no frame is ever out of date.
+  if (wasOpen !== open) {
+    setWasOpen(open);
+    setExiting(!open);
+  }
 
+  const present = open || exiting;
+  const closing = present && !open;
+
+  const finishExit = useCallback(() => {
+    if (exitTimerRef.current) {
+      window.clearTimeout(exitTimerRef.current);
+      exitTimerRef.current = 0;
+    }
+    setExiting(false);
+  }, []);
+
+  // Safety net: unmount even if `animationend` is suppressed (reduced motion,
+  // a background tab, or a browser that skips zero-length animations).
+  useEffect(() => {
+    if (!closing) return undefined;
+
+    const timer = window.setTimeout(finishExit, reduceMotion ? 0 : EXIT_FALLBACK_MS);
+    exitTimerRef.current = timer;
+
+    return () => {
+      window.clearTimeout(timer);
+      if (exitTimerRef.current === timer) exitTimerRef.current = 0;
+    };
+  }, [closing, reduceMotion, finishExit]);
+
+  // Focus, scroll lock and keyboard: Escape dismisses, Tab stays inside.
+  // Keyed on `present`, not `open`, so focus is restored only after the exit
+  // animation has finished and the overlay actually leaves the DOM.
+  useEffect(() => {
+    if (!present) return undefined;
+
+    const dialog = rootRef.current;
     const dismissButton = dismissRef.current;
-    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    // `document.body` is what the browser reports when nothing is focused; it
+    // cannot take focus back, so treat it (and <html>) as "no opener".
+    const active = document.activeElement;
+    previousFocusRef.current =
+      active instanceof HTMLElement && active !== document.body && active !== document.documentElement
+        ? active
+        : null;
 
     // Keep the page behind the dialog from scrolling or being reachable by AT.
     const stage = document.querySelector('.stage');
@@ -90,43 +129,48 @@ export function Celebration({ open, onDismiss }) {
       if (stage) stage.removeAttribute('inert');
       const previous = previousFocusRef.current;
       if (previous && document.contains(previous)) previous.focus();
-      else dismissButton?.blur();
+      else if (dialog && dialog.contains(document.activeElement)) dismissButton?.blur();
     };
-  }, [open]);
+  }, [present]);
 
-  // One volley per open: two angled side bursts + a centre burst.
+  // One volley per open: two angled side bursts + a delayed centre burst, all
+  // sharing the overlay's canvas through a single rAF loop.
   useEffect(() => {
-    if (!open) {
-      if (firedRef.current) stopConfetti();
+    if (!present) {
       firedRef.current = false;
       return undefined;
     }
     if (firedRef.current) return undefined;
     firedRef.current = true;
 
+    // `burstConfetti` also refuses to run under reduced motion; checking here
+    // keeps the canvas untouched so no frame is ever painted.
     if (reduceMotion) return undefined;
 
-    const colors = readConfettiPalette();
-    const base = {
-      disableForReducedMotion: true,
-      zIndex: readOverlayZIndex(),
-      scalar: 0.9,
-      ticks: 240,
-      ...(colors.length > 0 ? { colors } : {}),
+    const canvas = canvasRef.current;
+    if (!canvas) return undefined;
+
+    const controller = burstConfetti(canvas, {
+      particleCount: 160,
+      duration: 2500,
+      size: 9,
+      colors: readConfettiPalette(),
+      origins: [
+        // Angles point *into* the canvas: -90 is straight up, so the left
+        // emitter leans right (-58) and the right emitter leans left (-122).
+        { x: -0.02, y: 0.72, angle: -58, spread: 66, velocity: 0.72, count: 45 },
+        { x: 1.02, y: 0.72, angle: -122, spread: 66, velocity: 0.72, count: 45 },
+        { x: 0.5, y: 0.56, angle: -90, spread: 120, velocity: 0.64, delay: 180, count: 70 },
+      ],
+    });
+
+    return () => {
+      controller.stop();
+      // StrictMode remounts the effect in dev, and a later reopen must get its
+      // own volley: the flag has to be released with the animation.
+      firedRef.current = false;
     };
-
-    confetti({ ...base, particleCount: 70, angle: 58, spread: 66, startVelocity: 46, origin: { x: -0.02, y: 0.72 } });
-    confetti({ ...base, particleCount: 70, angle: 122, spread: 66, startVelocity: 46, origin: { x: 1.02, y: 0.72 } });
-
-    const centerTimer = window.setTimeout(() => {
-      confetti({ ...base, particleCount: 130, spread: 100, startVelocity: 52, origin: { x: 0.5, y: 0.56 } });
-    }, 180);
-
-    return () => window.clearTimeout(centerTimer);
-  }, [open, reduceMotion]);
-
-  // Drop the confetti canvas when the component itself goes away.
-  useEffect(() => () => stopConfetti(), []);
+  }, [present, reduceMotion]);
 
   function dismiss() {
     onDismissRef.current?.();
@@ -136,56 +180,53 @@ export function Celebration({ open, onDismiss }) {
     if (event.target === event.currentTarget) dismiss();
   }
 
-  return (
-    <AnimatePresence>
-      {open ? (
-        <motion.div
-          key="celebration"
-          className="cel"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="cel-title"
-          aria-describedby="cel-body"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: reduceMotion ? 0 : 0.3, ease: [0.16, 1, 0.3, 1] }}
-          onClick={handleBackdropClick}
-        >
-          <motion.div
-            className="cel__card"
-            initial={reduceMotion ? false : { opacity: 0, y: 30, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.98 }}
-            transition={reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 240, damping: 26, mass: 0.9 }}
-          >
-            <div className="cel__floats" aria-hidden="true">
-              {FLOATING_EMOJI.map((item) => (
-                <span
-                  className="cel__float"
-                  key={`${item.glyph}-${item.left}-${item.top}`}
-                  style={{ left: item.left, top: item.top, animationDelay: item.delay, fontSize: item.size }}
-                >
-                  {item.glyph}
-                </span>
-              ))}
-            </div>
+  function handleAnimationEnd(event) {
+    if (event.target !== event.currentTarget) return;
+    if (!closing) return;
+    finishExit();
+  }
 
-            <span className="cel__orb" aria-hidden="true">
-              🎉
+  if (!present) return null;
+
+  return (
+    <div
+      ref={rootRef}
+      className={closing ? 'cel cel--closing' : 'cel'}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cel-title"
+      aria-describedby="cel-body"
+      onClick={handleBackdropClick}
+      onAnimationEnd={handleAnimationEnd}
+    >
+      <canvas ref={canvasRef} className="cel__confetti" aria-hidden="true" />
+
+      <div className="cel__card">
+        <div className="cel__floats" aria-hidden="true">
+          {FLOATING_EMOJI.map((item) => (
+            <span
+              className="cel__float"
+              key={`${item.glyph}-${item.left}-${item.top}`}
+              style={{ left: item.left, top: item.top, animationDelay: item.delay, fontSize: item.size }}
+            >
+              {item.glyph}
             </span>
-            <h2 className="cel__title" id="cel-title">
-              Sinh nhật vui vẻ!
-            </h2>
-            <p className="cel__body" id="cel-body">
-              Chúc mừng — tròn {BIRTHDAY_AGE} tuổi, khoảnh khắc đã tới.
-            </p>
-            <button ref={dismissRef} type="button" className="cel__btn" onClick={dismiss}>
-              Tuyệt vời
-            </button>
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+          ))}
+        </div>
+
+        <span className="cel__orb" aria-hidden="true">
+          🎉
+        </span>
+        <h2 className="cel__title" id="cel-title">
+          Sinh nhật vui vẻ!
+        </h2>
+        <p className="cel__body" id="cel-body">
+          Chúc mừng — tròn {BIRTHDAY_AGE} tuổi, khoảnh khắc đã tới.
+        </p>
+        <button ref={dismissRef} type="button" className="cel__btn" onClick={dismiss}>
+          Tuyệt vời
+        </button>
+      </div>
+    </div>
   );
 }

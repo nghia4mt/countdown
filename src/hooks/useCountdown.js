@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   CAMPAIGN_START_MS,
+  MINUTE_MS,
   computeRemaining,
   progressRatio,
 } from '../lib/countdown.js';
@@ -14,14 +15,14 @@ const DEADLINE_SLACK_MS = 24;
  * Wall-clock countdown with drift compensation.
  *
  * Every tick re-reads `Date.now()` and re-schedules itself against the next
- * whole-second boundary of the wall clock, so the rendered value follows real
+ * whole-minute boundary of the wall clock, so the rendered value follows real
  * time instead of accumulating `setInterval` drift (including throttled or
  * backgrounded tabs). The first value is available immediately on mount and the
  * loop stops once the target is reached.
  *
  * @param {number} targetMs epoch milliseconds of the deadline
  * @returns {{
- *   remaining: { days: number, hours: number, minutes: number, seconds: number },
+ *   remaining: { days: number, hours: number, minutes: number },
  *   progress: number,
  *   isExpired: boolean,
  * }}
@@ -33,7 +34,7 @@ export function useCountdown(targetMs) {
     let timerId = 0;
     let stopped = false;
 
-    /** Read the clock, render it, then aim at the next second boundary. */
+    /** Read the clock, render it, then aim at the next minute boundary. */
     const tick = () => {
       if (stopped) return;
 
@@ -43,10 +44,11 @@ export function useCountdown(targetMs) {
       const toTarget = targetMs - current;
       if (!(toTarget > 0)) return; // expired — nothing left to count.
 
-      const delay =
-        toTarget < 1000
-          ? toTarget + DEADLINE_SLACK_MS
-          : 1000 - (current % 1000);
+      // Wake up at the next whole minute, but never overshoot the deadline by
+      // more than one tick. The slack guarantees the tick that lands on the
+      // boundary is evaluated as expired.
+      const msToMinute = MINUTE_MS - (current % MINUTE_MS);
+      const delay = Math.min(msToMinute, toTarget) + DEADLINE_SLACK_MS;
 
       timerId = window.setTimeout(tick, Math.max(MIN_DELAY_MS, delay));
     };
@@ -73,7 +75,6 @@ export function useCountdown(targetMs) {
     days: computed.days,
     hours: computed.hours,
     minutes: computed.minutes,
-    seconds: computed.seconds,
   };
 
   return {

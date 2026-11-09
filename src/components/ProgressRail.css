@@ -1,6 +1,10 @@
 /* ============================================================
    ProgressRail — precision campaign rail. Owner: ui-atmosphere.
-   Animated properties: transform, opacity only.
+   Animated properties: transform, opacity, translate only.
+
+   `--pr-p` (0..1, set inline by React) is the single source of truth:
+   the fill scales by it, the head slot translates by it, and both run the
+   same 900ms transition so the dot can never drift off the fill's edge.
    ============================================================ */
 
 .pr {
@@ -9,6 +13,45 @@
   gap: 12px;
   width: 100%;
   text-align: left;
+  /* Entrance rides the independent `translate` property so it cannot fight
+     the scaleX on the fill. `backwards` holds the rail invisible through the
+     500ms delay, then hands the property back with no jump. */
+  animation: pr-enter 800ms var(--ease-out) 500ms backwards;
+}
+
+/* Entrance: opacity + translate only. */
+@keyframes pr-enter {
+  from {
+    opacity: 0;
+    translate: 0 18px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* The rail fills up once on load; the head travels with it. Both are pure
+   transforms off the same curve so they stay on top of each other. */
+@keyframes pr-fill-in {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(var(--pr-p, 0));
+  }
+}
+
+@keyframes pr-head-in {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(calc(var(--pr-p, 0) * 100cqw));
+  }
 }
 
 /* ---------- meta row ---------- */
@@ -38,6 +81,21 @@
   border-radius: 50%;
   background: var(--cyan-soft);
   box-shadow: 0 0 10px var(--cyan-soft);
+  animation: pr-dot-breathe 3.4s ease-in-out infinite;
+}
+
+/* Live dot: a slow breath, transform + opacity only (never width/height). */
+@keyframes pr-dot-breathe {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(0.86);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
 }
 
 .pr__meta-value {
@@ -55,9 +113,18 @@
   white-space: nowrap;
 }
 
+/* Odometer rollers plus a plain-text percent sign. */
 .pr__pct {
+  display: inline-flex;
+  align-items: baseline;
   font: inherit;
   letter-spacing: inherit;
+  color: inherit;
+}
+
+.pr__pct-sign {
+  font: inherit;
+  letter-spacing: 0;
   color: inherit;
 }
 
@@ -90,6 +157,14 @@
   overflow: hidden;
   border-radius: inherit;
   transform-origin: left center;
+  /* The whole fill is one scaled box: never width, never left. */
+  transform: scaleX(var(--pr-p, 0));
+  transition: transform 900ms var(--ease-spring);
+  /* Fill-up on load. `--ease-out` here, not the spring token: the rail starts
+     at 0 and an overshooting curve would push a full-length (p = 1) fill past
+     the rail's right cap. Per-tick deltas are a fraction of a percent, so the
+     spring transition above cannot overshoot into a visible bleed. */
+  animation: pr-fill-in 900ms var(--ease-out) 500ms backwards;
   will-change: transform;
   background: linear-gradient(
     90deg,
@@ -158,21 +233,79 @@
   z-index: 2;
 }
 
+/* A slow light wave travelling across the 25 / 50 / 75 graduations.
+   Opacity + scaleY only; the tick's `left` is set inline by React and stays put. */
+.pr__tick::after {
+  content: '';
+  position: absolute;
+  inset: -4px -2px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--cyan-soft) 55%, transparent),
+    transparent 78%
+  );
+  opacity: 0.12;
+  pointer-events: none;
+  animation: pr-tick-glow 4.8s ease-in-out infinite;
+}
+
+.pr__rail .pr__tick:nth-of-type(1)::after {
+  animation-delay: 0s;
+}
+
+.pr__rail .pr__tick:nth-of-type(2)::after {
+  animation-delay: 0.7s;
+}
+
+.pr__rail .pr__tick:nth-of-type(3)::after {
+  animation-delay: 1.4s;
+}
+
+@keyframes pr-tick-glow {
+  0%,
+  100% {
+    opacity: 0.12;
+    transform: scaleY(0.82);
+  }
+
+  50% {
+    opacity: 0.55;
+    transform: scaleY(1.06);
+  }
+}
+
 /* ---------- glowing head dot ---------- */
 
+/* Inset by the rail's own 1px border, so this layer's width is exactly the
+   fill's width: `p * 100cqw` below lands the dot on the fill's leading edge
+   (p = 0 → the fill's left edge, p = 1 → its right edge). */
 .pr__head-layer {
   position: absolute;
   top: 0;
-  left: 7px;
-  right: 7px;
+  left: 1px;
+  right: 1px;
   height: 10px;
   pointer-events: none;
   z-index: 3;
+  container-type: inline-size;
 }
 
+/* A zero-width slot parked on the left edge, shifted by the same ratio and the
+   same transition as the fill. Container units (`cqw`) give an exact
+   percentage-of-track length, so translating (never resizing) keeps the head
+   welded to the fill for every frame of the 900ms move, touches no layout
+   property, and leaves no oversized box hanging past the rail. */
 .pr__head-slot {
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  transform: translateX(calc(var(--pr-p, 0) * 100cqw));
+  transition: transform 900ms var(--ease-spring);
+  animation: pr-head-in 900ms var(--ease-out) 500ms backwards;
+  will-change: transform;
 }
 
 .pr__head {
@@ -212,6 +345,36 @@
   100% {
     transform: scale(1.9);
     opacity: 0;
+  }
+}
+
+/* Inner core breath: a slower halo under the existing 2.4s ring, so the head
+   reads as a live instrument rather than a metronome. Transform + opacity only. */
+.pr__head::before {
+  content: '';
+  position: absolute;
+  inset: -70%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--cyan-soft) 55%, transparent),
+    transparent 70%
+  );
+  opacity: 0.45;
+  pointer-events: none;
+  animation: pr-head-core 3.2s ease-in-out infinite;
+}
+
+@keyframes pr-head-core {
+  0%,
+  100% {
+    opacity: 0.32;
+    transform: scale(0.86);
+  }
+
+  50% {
+    opacity: 0.72;
+    transform: scale(1.12);
   }
 }
 
@@ -259,6 +422,20 @@
   box-shadow: 0 0 10px var(--success);
 }
 
+/* The head's ambient halo joins the success tone and the sweep calms down. */
+.pr--expired .pr__head::before {
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--success) 60%, transparent),
+    transparent 70%
+  );
+}
+
+.pr--expired .pr__shimmer {
+  animation-duration: 6.5s;
+  opacity: 0.34;
+}
+
 /* ---------- mobile ---------- */
 
 @media (max-width: 720px) {
@@ -289,8 +466,25 @@
 
 /* ---------- reduced motion ---------- */
 
+/* Also driven by the reactive JS hook, so a mid-session preference flip takes
+   effect on the very next render. The media query below covers first paint. */
+.pr--still,
+.pr--still .pr__fill,
+.pr--still .pr__head-slot {
+  animation: none;
+  transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .pr__shimmer {
+  .pr,
+  .pr__fill,
+  .pr__head-slot {
+    animation: none;
+    transition: none;
+  }
+
+  .pr__shimmer,
+  .pr--expired .pr__shimmer {
     animation: none;
     opacity: 0;
   }
@@ -299,5 +493,21 @@
     animation: none;
     opacity: 0.35;
     transform: scale(1.35);
+  }
+
+  /* New micro-motion: static halos, no breathing. */
+  .pr__head::before {
+    animation: none;
+    opacity: 0.45;
+    transform: none;
+  }
+
+  .pr__tick::after {
+    animation: none;
+    opacity: 0.2;
+  }
+
+  .pr__meta-label::before {
+    animation: none;
   }
 }

@@ -47,6 +47,7 @@ const url = arg('url', process.env.SHOT_URL || 'http://localhost:5173/countdown/
 const mobile = Boolean(arg('mobile', false));
 const expired = Boolean(arg('expired', false));
 const reduced = Boolean(arg('reduced', false));
+const toggleReduced = Boolean(arg('toggle-reduced', false));
 const settleMs = Number(arg('settle', 2600));
 const dpr = Number(arg('dpr', mobile ? 2 : 1));
 const chromePath = findChrome();
@@ -151,10 +152,38 @@ await send('Page.reload', { ignoreCache: true });
 await delay(settleMs);
 
 if (expired) {
-  // Push "now" past the deadline; the hook's next tick flips to expired and the
-  // celebration auto-opens. No source changes involved.
-  await evaluate(`(() => { const base = Date.now(); Date.now = () => base + 40 * 86400000; })()`);
+  // Push "now" past the deadline, then nudge the hook: it re-reads the clock on
+  // `visibilitychange`, so we don't have to wait for the next wall-clock minute
+  // (the countdown ticks once a minute now that the seconds unit is gone).
+  await evaluate(`(() => {
+    const base = Date.now();
+    Date.now = () => base + 40 * 86400000;
+    document.dispatchEvent(new Event('visibilitychange'));
+  })()`);
   await delay(2200);
+}
+
+let reducedToggle = null;
+if (toggleReduced) {
+  // Flip "Reduce motion" *after* the page is live. The WebGL layer must notice the
+  // media-query change and rebuild itself as a static frame (a new canvas element)
+  // instead of keeping its RAF loop running.
+  await evaluate(`(() => {
+    window.__nbCanvas = document.querySelector('.nb__canvas');
+    return Boolean(window.__nbCanvas);
+  })()`);
+  await send('Emulation.setEmulatedMedia', {
+    features: [{ name: 'prefers-reduced-motion', value: 'reduce' }],
+  });
+  await delay(1400);
+  reducedToggle = await evaluate(`(() => {
+    const canvas = document.querySelector('.nb__canvas');
+    return {
+      canvasPresent: Boolean(canvas),
+      recreated: Boolean(canvas) && canvas !== window.__nbCanvas,
+      mediaMatches: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    };
+  })()`);
 }
 
 const metrics = await evaluate(`(() => {
@@ -168,6 +197,13 @@ const metrics = await evaluate(`(() => {
     innerWidth: window.innerWidth,
     innerHeight: window.innerHeight,
     dpr: window.devicePixelRatio,
+    // Which background renderer actually ran: the three.js canvas or the 2D fallback.
+    nebula: (() => {
+      const canvas = document.querySelector('.nb__canvas');
+      const fallback = document.querySelector('.bgfx__stars');
+      const gl = canvas ? canvas.getContext('webgl2') || canvas.getContext('webgl') : null;
+      return { canvas: Boolean(canvas), fallback: Boolean(fallback), webgl: Boolean(gl) };
+    })(),
     docClientWidth: document.documentElement.clientWidth,
     docScrollWidth: document.documentElement.scrollWidth,
     horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -216,7 +252,7 @@ const shot = await send('Page.captureScreenshot', {
 await mkdir(dirname(out), { recursive: true });
 await writeFile(out, Buffer.from(shot.data, 'base64'));
 
-console.log(JSON.stringify({ out, width, height, activeUrl: url, pageErrors, audit, ...metrics }, null, 2));
+console.log(JSON.stringify({ out, width, height, activeUrl: url, pageErrors, audit, reducedToggle, ...metrics }, null, 2));
 socket.close();
 chrome.kill();
 await delay(250);

@@ -29,7 +29,7 @@ export const MINUTE_MS = 60_000;
  *
  * @param {number} targetMs timestamp of the deadline
  * @param {number} nowMs timestamp of "now"
- * @returns {{ totalMs: number, days: number, hours: number, minutes: number, seconds: number, expired: boolean }}
+ * @returns {{ totalMs: number, days: number, hours: number, minutes: number, expired: boolean }}
  */
 export function computeRemaining(targetMs, nowMs) {
   const diff = targetMs - nowMs;
@@ -40,7 +40,6 @@ export function computeRemaining(targetMs, nowMs) {
     days: Math.floor(totalMs / DAY_MS),
     hours: Math.floor((totalMs % DAY_MS) / HOUR_MS),
     minutes: Math.floor((totalMs % HOUR_MS) / MINUTE_MS),
-    seconds: Math.floor((totalMs % MINUTE_MS) / 1000),
     expired: diff <= 0,
   };
 }
@@ -61,9 +60,9 @@ export function progressRatio(startMs, targetMs, nowMs) {
   return Math.min(1, Math.max(0, (nowMs - startMs) / span));
 }
 
-/** Accessibility / summary sentence, e.g. "31 ngày 22 giờ 35 phút 45 giây". */
+/** Accessibility / summary sentence, e.g. "31 ngày 22 giờ 35 phút". */
 export function formatRemaining(remaining) {
-  return `${remaining.days} ngày ${pad2(remaining.hours)} giờ ${pad2(remaining.minutes)} phút ${pad2(remaining.seconds)} giây`;
+  return `${remaining.days} ngày ${pad2(remaining.hours)} giờ ${pad2(remaining.minutes)} phút`;
 }
 
 /** "06 · 12 · 2026" — formatted in the campaign timezone, not the visitor's. */

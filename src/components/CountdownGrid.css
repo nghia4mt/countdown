@@ -1,5 +1,8 @@
 /* ============================================================
-   CountdownGrid — 4-up desktop, 2x2 below 720px. Owner: ui-digits.
+   CountdownGrid — 3-up symmetric (days / hours / minutes) at every
+   breakpoint. Owner: ui-digits. Never 2 columns: that leaves a
+   dangling card on the second row. Below 400px the card type scales
+   down instead, so three two-digit values still fit uncropped.
    No separators: the cards carry the composition.
    ============================================================ */
 
@@ -10,7 +13,7 @@
 
 .cg__grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: stretch;
   gap: clamp(10px, 1.35vw, 20px);
   width: 100%;
@@ -19,7 +22,55 @@
 
 @media (max-width: 719px) {
   .cg__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(10px, 2.6vw, 16px);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(8px, 2.2vw, 16px);
+  }
+}
+
+/* Narrow phones: three 2-digit odometers in ~100px columns. Shrink the card's
+   own type and inline padding (declared here, scoped to this grid) instead of
+   dropping to a lopsided 2+1 layout. The card's own 380px rule only tightens
+   padding to 6px, which is not enough once the column is a third of the row. */
+@media (max-width: 400px) {
+  .cg__grid > .cc {
+    padding-inline: 4px;
+  }
+
+  .cg__grid > .cc .cc__digits {
+    font-size: clamp(1.9rem, 9.4vw, 2.7rem);
+    letter-spacing: -0.06em;
+  }
+
+  .cg__grid > .cc .cc__label {
+    font-size: 0.58rem;
+    letter-spacing: 0.16em;
+  }
+}
+
+/* ---------- staggered aura breathing ----------
+   The grid owns the rhythm, the card owns the keyframes: each card gets its own
+   phase (negative delay = already mid-cycle on first paint) and a slightly
+   different period, so the three auras never pulse in unison. Only custom
+   properties are declared here — no visual property is overridden. */
+
+.cg__grid > .cc:nth-child(1) {
+  --cc-aura-delay: 0s;
+  --cc-aura-dur: 6.8s;
+}
+
+.cg__grid > .cc:nth-child(2) {
+  --cc-aura-delay: -1.9s;
+  --cc-aura-dur: 7.2s;
+}
+
+.cg__grid > .cc:nth-child(3) {
+  --cc-aura-delay: -3.4s;
+  --cc-aura-dur: 7.6s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cg__grid > .cc {
+    --cc-aura-delay: 0s;
+    --cc-aura-dur: 0s;
   }
 }

@@ -5,13 +5,12 @@ const UNITS = [
   { unit: 'days', label: 'Ngày', accent: 'var(--unit-days)' },
   { unit: 'hours', label: 'Giờ', accent: 'var(--unit-hours)' },
   { unit: 'minutes', label: 'Phút', accent: 'var(--unit-minutes)' },
-  { unit: 'seconds', label: 'Giây', accent: 'var(--unit-seconds)' },
 ];
 
 /**
- * The four odometer cards, days → seconds, each with its own accent.
+ * The three odometer cards, days → minutes, each with its own accent.
  *
- * @param {{ remaining: { days: number, hours: number, minutes: number, seconds: number },
+ * @param {{ remaining: { days: number, hours: number, minutes: number },
  *   isExpired?: boolean }} props
  */
 export function CountdownGrid({ remaining, isExpired }) {

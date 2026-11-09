@@ -29,7 +29,6 @@
   --unit-days: var(--violet);
   --unit-hours: var(--cyan);
   --unit-minutes: var(--pink);
-  --unit-seconds: var(--amber);
 
   /* surfaces */
   --glass: rgba(255, 255, 255, 0.055);

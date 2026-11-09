@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useReducedMotion } from 'motion/react';
+import { useReducedMotion } from '../lib/use-reduced-motion.js';
 
 const TAU = Math.PI * 2;
 const TARGET_STARS = 110;

@@ -116,6 +116,50 @@
   animation: hero-in 0.9s var(--ease-out) 0.14s both;
 }
 
+/* One-shot light sweep across the headline. The gradient text above stays as
+   the paint source; this pseudo is a separate overlay translated on the
+   compositor, so the digits are readable from the very first frame. It runs
+   exactly once and parks off-frame — no infinite animation, no repaint. */
+.hero__title {
+  position: relative;
+  /* `clip` + margin keeps glyph overhang (negative tracking on the final "6")
+     visible while still clipping the sweep band. */
+  overflow: clip;
+  overflow-clip-margin: 0.08em;
+}
+
+.hero__title::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 36%,
+    color-mix(in srgb, var(--white) 45%, transparent) 50%,
+    transparent 64%
+  );
+  /* Soft top/bottom ends so the band reads as a sheen, not a clipped
+     rectangle. Static mask only — nothing here is animated. */
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 26%,
+    #000 74%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 26%,
+    #000 74%,
+    transparent 100%
+  );
+  mix-blend-mode: overlay;
+  transform: translateX(-120%);
+  animation: hero-sweep 900ms var(--ease-out) 1050ms 1 both;
+}
+
 .hero__sub {
   max-width: 44ch;
   color: var(--ink-dim);
@@ -132,6 +176,14 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 14px;
+}
+
+/* Reveal starts when the block actually becomes visible. Expiry auto-opens the
+   celebration dialog, so a plain mount animation would always play behind it —
+   this rule begins matching the moment the dialog closes. Transform and opacity
+   only, so it stays on the compositor. */
+.actions:not([data-celebrating]) {
+  animation: actions-in var(--dur) var(--ease-out) both;
 }
 
 .btn {
@@ -261,6 +313,28 @@
   }
 }
 
+@keyframes actions-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Single pass, left to right. Transform only, and the end state leaves the
+   band fully outside the clipped box so nothing lingers over the digits. */
+@keyframes hero-sweep {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(120%);
+  }
+}
+
 /* ---------- responsive ---------- */
 
 @media (max-width: 720px) {
@@ -329,9 +403,28 @@
     opacity: 0;
   }
 
-  .btn,
-  .btn--primary::after {
+  /* The sweep is decoration only; park it hidden rather than letting it snap
+     to a static band over the label. */
+  .hero__title::after {
+    animation: none;
+    opacity: 0;
+  }
+
+  .actions:not([data-celebrating]) {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .btn {
     transition: none;
     transform: none;
+  }
+
+  /* Sheen is decoration only. `transform: none` would park the gradient over
+     the label, so hide it outright instead. */
+  .btn--primary::after {
+    transform: none;
+    opacity: 0;
   }
 }

@@ -42,10 +42,10 @@ const NOW_MS = 1_700_000_000_000;
 
 /** Expected `computeRemaining` shape for exactly zero remaining. */
 function zeroResult() {
-  return { totalMs: 0, days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
+  return { totalMs: 0, days: 0, hours: 0, minutes: 0, expired: true };
 }
 
-test('computeRemaining splits 1d 2h 3m 4s exactly', () => {
+test('computeRemaining splits 1d 2h 3m and drops the sub-minute remainder', () => {
   const diff = DAY_MS + 2 * HOUR_MS + 3 * MINUTE_MS + 4_000;
 
   assert.deepEqual(computeRemaining(NOW_MS + diff, NOW_MS), {
@@ -53,29 +53,26 @@ test('computeRemaining splits 1d 2h 3m 4s exactly', () => {
     days: 1,
     hours: 2,
     minutes: 3,
-    seconds: 4,
     expired: false,
   });
 });
 
-test('computeRemaining floors 59_999ms to 59 seconds instead of rounding up', () => {
+test('computeRemaining floors 59_999ms to 0 minutes instead of rounding up', () => {
   assert.deepEqual(computeRemaining(NOW_MS + 59_999, NOW_MS), {
     totalMs: 59_999,
     days: 0,
     hours: 0,
     minutes: 0,
-    seconds: 59,
     expired: false,
   });
 });
 
-test('computeRemaining turns exactly 60_000ms into 1 minute, not 60 seconds', () => {
+test('computeRemaining turns exactly 60_000ms into 1 minute', () => {
   assert.deepEqual(computeRemaining(NOW_MS + MINUTE_MS, NOW_MS), {
     totalMs: 60_000,
     days: 0,
     hours: 0,
     minutes: 1,
-    seconds: 0,
     expired: false,
   });
 });
@@ -86,7 +83,6 @@ test('computeRemaining turns exactly 3_600_000ms into 1 hour', () => {
     days: 0,
     hours: 1,
     minutes: 0,
-    seconds: 0,
     expired: false,
   });
 });
@@ -97,9 +93,17 @@ test('computeRemaining turns exactly 86_400_000ms into 1 day', () => {
     days: 1,
     hours: 0,
     minutes: 0,
-    seconds: 0,
     expired: false,
   });
+});
+
+test('computeRemaining never exposes a seconds field', () => {
+  const diffs = [0, 1, 999, 1_000, 59_999, 60_000, DAY_MS, 10 * DAY_MS];
+
+  for (const diff of diffs) {
+    const result = computeRemaining(NOW_MS + diff, NOW_MS);
+    assert.ok(!('seconds' in result), `diff=${diff}: result has no seconds key`);
+  }
 });
 
 test('computeRemaining reports all zeros and expired at exactly 0 remaining', () => {
@@ -140,7 +144,7 @@ test('computeRemaining invariants hold for negative, zero, boundary and large di
     assert.equal(r.totalMs, Math.max(0, diff), `${label}: totalMs clamps at zero`);
 
     assert.ok(Number.isInteger(r.days) && r.days >= 0, `${label}: days is a non-negative integer`);
-    for (const unit of ['hours', 'minutes', 'seconds']) {
+    for (const unit of ['hours', 'minutes']) {
       assert.ok(
         Number.isInteger(r[unit]) && r[unit] >= 0 && r[unit] <= 59,
         `${label}: ${unit}=${r[unit]} is an integer within 0..59`,
@@ -149,11 +153,10 @@ test('computeRemaining invariants hold for negative, zero, boundary and large di
 
     assert.equal(r.expired, diff <= 0, `${label}: expired iff the diff is not positive`);
 
-    const decomposed =
-      r.days * DAY_MS + r.hours * HOUR_MS + r.minutes * MINUTE_MS + r.seconds * 1_000;
+    const decomposed = r.days * DAY_MS + r.hours * HOUR_MS + r.minutes * MINUTE_MS;
     assert.ok(
-      r.totalMs - decomposed >= 0 && r.totalMs - decomposed < 1_000,
-      `${label}: split discards only the sub-second remainder`,
+      r.totalMs - decomposed >= 0 && r.totalMs - decomposed < MINUTE_MS,
+      `${label}: split discards only the sub-minute remainder`,
     );
   }
 });
@@ -232,18 +235,27 @@ test('progressRatio handles the start > target inverted range', () => {
   }
 });
 
-test('formatRemaining renders "12 ngày 04 giờ 05 phút 06 giây"', () => {
+test('formatRemaining renders "12 ngày 04 giờ 05 phút" without seconds', () => {
   assert.equal(
-    formatRemaining({ days: 12, hours: 4, minutes: 5, seconds: 6 }),
-    '12 ngày 04 giờ 05 phút 06 giây',
+    formatRemaining({ days: 12, hours: 4, minutes: 5 }),
+    '12 ngày 04 giờ 05 phút',
   );
+});
+
+test('formatRemaining never mentions the seconds unit', () => {
+  const diff = DAY_MS + 2 * HOUR_MS + 3 * MINUTE_MS + 4_000;
+  const remaining = computeRemaining(NOW_MS + diff, NOW_MS);
+
+  const formatted = formatRemaining(remaining);
+  assert.equal(formatted, '1 ngày 02 giờ 03 phút');
+  assert.ok(!formatted.includes('giây'), `unexpected seconds unit in "${formatted}"`);
 });
 
 test('formatRemaining zero-pads time units while days stay unpadded', () => {
   const diff = DAY_MS + 2 * HOUR_MS + 3 * MINUTE_MS + 4_000;
   const remaining = computeRemaining(NOW_MS + diff, NOW_MS);
 
-  assert.equal(formatRemaining(remaining), '1 ngày 02 giờ 03 phút 04 giây');
+  assert.equal(formatRemaining(remaining), '1 ngày 02 giờ 03 phút');
 });
 
 test('formatDayMonthYear formats TARGET_MS as "06 · 12 · 2026" in Asia/Bangkok', () => {

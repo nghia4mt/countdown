@@ -1,55 +1,47 @@
-import { useEffect } from 'react';
-import NumberFlow from '@number-flow/react';
-import { motion, useReducedMotion, useSpring, useTransform } from 'motion/react';
+import { Odometer } from './Odometer.jsx';
+import { useReducedMotion } from '../lib/use-reduced-motion.js';
 import { CAMPAIGN_START_MS, TARGET_MS, formatDayMonthYear } from '../lib/countdown.js';
 import './ProgressRail.css';
 
 const START_LABEL = formatDayMonthYear(CAMPAIGN_START_MS);
 const END_LABEL = formatDayMonthYear(TARGET_MS);
 const RAIL_TICKS = [25, 50, 75];
-const RAIL_SPRING = { stiffness: 68, damping: 20, mass: 0.9 };
-const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
-
-/** Hook first, media query as the guard for the very first paint. */
-function prefersReducedMotion() {
-  return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-    ? window.matchMedia(REDUCED_MOTION_QUERY).matches
-    : false;
-}
 
 /**
  * Elapsed-campaign rail: instrument-grade, not a bootstrap progress bar.
- * The fill is driven by `transform: scaleX()` only, so it never triggers layout.
+ *
+ * One number drives the whole rail: `--pr-p`, the clamped 0..1 ratio. The fill
+ * scales by it (`transform: scaleX`) and the head slot translates by it
+ * (`transform: translateX`), both with the same 900ms transition, so the dot
+ * stays welded to the leading edge for every frame of the move — not just at
+ * rest. Nothing but transform/opacity is animated, and no animation library is
+ * involved.
+ *
+ * Reduced motion is honoured twice: the reactive hook adds `pr--still`, and the
+ * CSS media query covers the very first paint before that class exists.
  */
 export function ProgressRail({ progress, isExpired }) {
-  const reducedMotion = useReducedMotion();
-  const reduceMotion = Boolean(reducedMotion) || prefersReducedMotion();
+  const reduceMotion = useReducedMotion();
   const ratio = Number.isFinite(progress) ? progress : 0;
   const target = isExpired ? 1 : Math.min(1, Math.max(0, ratio));
   const percent = Math.round(target * 100);
 
-  const spring = useSpring(0, RAIL_SPRING);
-  const scaleX = useTransform(spring, (value) => Math.min(1, Math.max(0, value)));
-  const headX = useTransform(scaleX, (value) => `${value * 100}%`);
-
-  useEffect(() => {
-    if (reduceMotion) spring.jump(target);
-    else spring.set(target);
-  }, [spring, reduceMotion, target]);
-
   return (
-    <motion.div
-      className={`pr${isExpired ? ' pr--expired' : ''}`}
-      initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={
-        reduceMotion ? { duration: 0 } : { duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }
-      }
+    <div
+      className={`pr${isExpired ? ' pr--expired' : ''}${reduceMotion ? ' pr--still' : ''}`}
+      style={{ '--pr-p': target.toFixed(4) }}
     >
       <div className="pr__meta">
         <span className="pr__meta-label">Đã trôi qua</span>
         <span className="pr__meta-value">
-          <NumberFlow className="pr__pct" value={percent} suffix="%" />
+          {/* Decorative rollers: the readable value is `aria-valuetext` on the
+              progressbar below, so the odometer is aria-hidden by design. */}
+          <span className="pr__pct">
+            <Odometer value={percent} digits={2} />
+            <span className="pr__pct-sign" aria-hidden="true">
+              %
+            </span>
+          </span>
         </span>
       </div>
 
@@ -63,9 +55,9 @@ export function ProgressRail({ progress, isExpired }) {
         aria-valuetext={`đã trôi qua ${percent}%`}
       >
         <div className="pr__rail">
-          <motion.div className="pr__fill" style={{ scaleX }} aria-hidden="true">
+          <div className="pr__fill" aria-hidden="true">
             <span className="pr__shimmer" />
-          </motion.div>
+          </div>
 
           {RAIL_TICKS.map((tick) => (
             <span className="pr__tick" key={tick} aria-hidden="true" style={{ left: `${tick}%` }} />
@@ -73,9 +65,9 @@ export function ProgressRail({ progress, isExpired }) {
         </div>
 
         <div className="pr__head-layer" aria-hidden="true">
-          <motion.div className="pr__head-slot" style={{ x: headX }}>
+          <div className="pr__head-slot">
             <span className="pr__head" />
-          </motion.div>
+          </div>
         </div>
       </div>
 
@@ -89,6 +81,6 @@ export function ProgressRail({ progress, isExpired }) {
           <span className="pr__date-value">{END_LABEL}</span>
         </span>
       </div>
-    </motion.div>
+    </div>
   );
 }
