@@ -30,3 +30,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local workspace / editor notes (not part of the project)
+AGENTS.md
+.opencode/
+.project/
+/assets/
