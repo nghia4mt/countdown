@@ -25,9 +25,6 @@ export default function App() {
     setIsCelebrating(true);
   }, [isExpired]);
 
-  const state = isExpired ? 'expired' : 'running';
-  const statusText = isExpired ? 'Sinh nhật vui vẻ' : 'Đang đếm ngược';
-
   return (
     <div className="app">
       <BackgroundFX
@@ -38,14 +35,9 @@ export default function App() {
 
       <main className="stage">
         <header className="hero">
-          <p className="hero__badge" data-state={state}>
-            <span className="hero__pulse" aria-hidden="true" />
-            {statusText}
-          </p>
-
-          <p className="hero__eyebrow">Đếm ngược sinh nhật</p>
-
-          <h1 className="hero__title">{TARGET_LABEL}</h1>
+          <div className="hero__float">
+            <h1 className="hero__title">{TARGET_LABEL}</h1>
+          </div>
 
           <p className="hero__sub">
             {isExpired
@@ -76,12 +68,6 @@ export default function App() {
             </button>
           </div>
         ) : null}
-
-        <p className="footnote">
-          <span>GMT+7 · Asia/Bangkok</span>
-          <span className="footnote__dot" aria-hidden="true" />
-          <span>{isExpired ? 'Đã đến đích' : 'Đồng bộ mỗi phút'}</span>
-        </p>
       </main>
 
       <Celebration open={isCelebrating} onDismiss={() => setIsCelebrating(false)} />

@@ -223,7 +223,6 @@ const audit = await evaluate(`(() => {
   const bar = document.querySelector('[role="progressbar"]');
   const dialog = document.querySelector('[role="dialog"]');
   const stage = document.querySelector('.stage');
-  const footnote = document.querySelector('.footnote');
   return {
     progressbar: bar
       ? {
@@ -238,7 +237,6 @@ const audit = await evaluate(`(() => {
       : null,
     bodyOverflow: document.body.style.overflow,
     stageInert: stage ? stage.hasAttribute('inert') : null,
-    footnoteColor: footnote ? getComputedStyle(footnote).color : null,
     liveRegions: [...document.querySelectorAll('[aria-live]')].map((el) => el.getAttribute('aria-live')),
     actionButtons: [...document.querySelectorAll('.actions button')].map((el) => el.textContent.trim()),
   };

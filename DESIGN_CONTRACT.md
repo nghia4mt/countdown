@@ -193,7 +193,7 @@ expensive thing on this page.
 
 | Prefix | Area |
 |---|---|
-| `.app .stage .hero .hero__* .actions .btn .btn--* .footnote .status-dot` | App shell |
+| `.app .stage .hero .hero__* .actions .btn .btn--* .status-dot` | App shell |
 | `.cg .cg__* .cc .cc__* .odo .odo__*` | Countdown UI |
 | `.bgfx .bgfx__* .pr .pr__* .cel .cel__* .nb .nb__*` | Background & atmosphere |
 
@@ -202,9 +202,12 @@ BEM-ish, one block per component file. No global element selectors.
 ## 6. Motion rules
 
 - Transform / opacity / filter only. Never animate layout properties (`width`, `height`, `top`).
-- Entrance stagger: hero children fade up (0.8s, 0/70/140/210ms), cards `translate 28px → 0`,
+- Entrance stagger: hero title (0.9s, 140ms) then subtitle (0.9s, 210ms), cards `translate 28px → 0`,
   `opacity 0 → 1`, delay `i * 80ms`, duration `800ms`, ease `--ease-out`,
   rail last (`y 18px → 0`, 0.8s, delay 500ms). Hero first, rail last. One-shot only.
+- The hero title keeps floating after entrance: `.hero__float`, `translateY(0 → -9px)`,
+  `6s ease-in-out 1.2s infinite alternate`, transform only, disabled under reduced motion.
+  It is the only looping element above the background layer.
 - Cards are static after entrance. The only ongoing card motion is the odometer roll when
   a value changes.
 - Buttons: brightness may change on pointer over; press `scale .98`; focus 2px accent

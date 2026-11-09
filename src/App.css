@@ -35,60 +35,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
+  gap: 20px;
   max-width: 920px;
 }
 
-.hero__badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 16px 9px 13px;
-  border: 1px solid color-mix(in srgb, var(--violet) 30%, transparent);
-  border-radius: var(--r-pill);
-  background: color-mix(in srgb, var(--violet) 10%, transparent);
-  color: var(--violet-soft);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  animation: hero-in 0.8s var(--ease-out) both;
-}
-
-.hero__pulse {
-  position: relative;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 12px currentColor;
-}
-
-.hero__pulse::after {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  border: 1px solid currentColor;
-  opacity: 0.55;
-  animation: hero-pulse 2.4s var(--ease-out) infinite;
-}
-
-.hero__badge[data-state='expired'] {
-  border-color: color-mix(in srgb, var(--success) 35%, transparent);
-  background: color-mix(in srgb, var(--success) 10%, transparent);
-  color: var(--success);
-}
-
-.hero__eyebrow {
-  color: var(--ink-faint);
-  font-size: clamp(0.7rem, 1.3vw, 0.82rem);
-  font-weight: 600;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-  animation: hero-in 0.8s var(--ease-out) 0.07s both;
+/* Outer wrapper so the slow float never fights the title's one-shot entrance
+   or the sweep, which needs to clip inside `.hero__title`. */
+.hero__float {
+  animation: hero-float 6s ease-in-out 1.2s infinite alternate;
+  will-change: transform;
 }
 
 /* Static gradient: a looping background-position animation repaints the whole
@@ -262,29 +217,6 @@
   height: 100%;
 }
 
-/* ---------- footnote ---------- */
-
-.footnote {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: var(--ink-faint);
-  font-size: 0.74rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.footnote__dot {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: currentColor;
-  opacity: 0.6;
-}
-
 /* ---------- keyframes ---------- */
 
 @keyframes hero-in {
@@ -298,18 +230,14 @@
   }
 }
 
-@keyframes hero-pulse {
-  0% {
-    transform: scale(0.6);
-    opacity: 0.7;
+/* Slow buoyancy on the headline. Transform only, and it starts after the
+   one-shot entrance (0.14s + 0.9s) has settled. */
+@keyframes hero-float {
+  from {
+    transform: translateY(0);
   }
-  70% {
-    transform: scale(1.9);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1.9);
-    opacity: 0;
+  to {
+    transform: translateY(-9px);
   }
 }
 
@@ -343,13 +271,7 @@
   }
 
   .hero {
-    gap: 14px;
-  }
-
-  .hero__badge {
-    font-size: 0.66rem;
-    letter-spacing: 0.14em;
-    padding: 8px 14px 8px 11px;
+    gap: 16px;
   }
 
   .actions {
@@ -361,11 +283,6 @@
     flex: 1 1 160px;
     max-width: 260px;
     padding: 0 22px;
-  }
-
-  .footnote {
-    font-size: 0.68rem;
-    letter-spacing: 0.1em;
   }
 }
 
@@ -391,16 +308,15 @@
 /* ---------- reduced motion ---------- */
 
 @media (prefers-reduced-motion: reduce) {
-  .hero__badge,
-  .hero__eyebrow,
   .hero__title,
   .hero__sub {
     animation: none;
   }
 
-  .hero__pulse::after {
+  .hero__float {
     animation: none;
-    opacity: 0;
+    transform: none;
+    will-change: auto;
   }
 
   /* The sweep is decoration only; park it hidden rather than letting it snap

@@ -20,7 +20,8 @@ mờ, thanh tiến trình chiến dịch và màn ăn mừng confetti. Toàn b�
   Vòng lặp giữ ở 30fps, DPR tối đa 1.25 (1.0 khi viewport hẹp hoặc trỏ thô), giảm mật
   độ điểm trên mobile. `three` được `import()` động nên nằm ở chunk riêng, không chặn
   lần vẽ đầu; trình duyệt không có WebGL tự hạ cấp về starfield canvas 2D.
-- **Odometer & chuyển động** — hero, thẻ và rail vào theo nhịp stagger một lần; số cuộn
+- **Odometer & chuyển động** — hero, thẻ và rail vào theo nhịp stagger một lần; tiêu đề
+  "06 · 12 · 2026" lơ lửng nhẹ (translateY 9px, chu kỳ 6s, bắt đầu sau entrance); số cuộn
   bằng cột 0–9 dịch `transform`, giữ nguyên bề rộng nên layout không nhảy; nền có aurora
   drift và quỹ đạo quay rất chậm. Thẻ chỉ có aura tĩnh, không phản ứng theo con trỏ.
 - **Thanh tiến trình chiến dịch** — mốc bắt đầu 25.10.2026, đích 06.12.2026; phần trăm
