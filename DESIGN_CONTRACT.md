@@ -131,8 +131,9 @@ labels `Ngày`, `Giờ`, `Phút`, accents `var(--unit-days|hours|minutes)`.
 - `role="progressbar"` with `aria-valuemin/max/now/valuetext` ("đã trôi qua 86%").
 - Fill animated with `transform: scaleX()` (never `width`), soft highlight on the fill edge,
   glowing head dot.
-- Meta row: left "ĐÃ TRÔI QUA", right the live percentage via `<Odometer>`; under the track
-  the two dates from `formatDayMonthYear`: `25 · 10 · 2026` (start) and `06 · 12 · 2026` (end).
+- Meta row: left "ĐÃ TRÔI QUA", right the live percentage via `<Odometer>`; the rail itself is a
+  single 2px line — no printed dates (Sprint 5, wireframe A). `formatDayMonthYear` stays the
+  single source for the eyebrow label (`TARGET_LABEL`).
 
 ### `NebulaScene`
 
@@ -276,11 +277,11 @@ Report files changed, commands with pass/fail, and anything deliberately left un
 - The pause and share features were removed entirely (hook state, buttons, live region,
   CSS and docs). While the countdown runs the page has no action row; once it expires the
   replay button appears.
-- The progress rail spans the same width as the card row, aligning the composition's
+- The progress rail spans the same width as the slab, aligning the composition's
   left/right edges with the stage. Its start anchor is 25.10.2026.
 - `--ink-faint` is raised to #7d85a8 for AA; expired digits keep ≥0.82 opacity;
-  `role="progressbar"` sits on `.pr__track` so the dates are not presentational ARIA
-  children; the dialog locks `body` scroll and sets `inert` on `.stage`; the hero's
+  `role="progressbar"` sits on `.pr__track`; the dialog locks `body` scroll and sets `inert`
+  on `.stage`; the hero's
   infinite `background-position` animation was replaced by a one-shot `hero-in`
   transform/opacity entrance.
 - A render crash is caught by `src/components/ErrorBoundary.jsx` (wrapped in

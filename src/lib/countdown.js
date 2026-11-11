@@ -11,7 +11,8 @@ export const CAMPAIGN_START_ISO = '2026-10-25T00:00:00+07:00';
 export const TARGET_MS = Date.parse(TARGET_ISO);
 export const CAMPAIGN_START_MS = Date.parse(CAMPAIGN_START_ISO);
 
-export const TARGET_LABEL = '06 · 12 · 2026';
+/** Eyebrow label — one source of truth with the formatter below. */
+export const TARGET_LABEL = formatDayMonthYear(TARGET_MS);
 
 /** The birthday this page celebrates: 06/12/2003 → 06/12/2026. */
 export const BIRTH_ISO = '2003-12-06T00:00:00+07:00';

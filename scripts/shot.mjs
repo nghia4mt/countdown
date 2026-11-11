@@ -209,7 +209,7 @@ const metrics = await evaluate(`(() => {
     horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
     pageHeight: document.documentElement.scrollHeight,
     stage: rect('.stage'),
-    card: rect('.cc'),
+    card: rect('.cg'),
     title: rect('.hero__title'),
     dialog: rect('.cel__card'),
     overflowers: [...document.querySelectorAll('body *')]
@@ -229,7 +229,6 @@ const audit = await evaluate(`(() => {
           now: bar.getAttribute('aria-valuenow'),
           text: bar.getAttribute('aria-valuetext'),
           label: bar.getAttribute('aria-label'),
-          datesInsideBar: Boolean(bar.querySelector('.pr__dates')),
         }
       : null,
     dialog: dialog

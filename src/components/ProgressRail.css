@@ -1,29 +1,29 @@
 /* ============================================================
-   ProgressRail — precision campaign rail. Owner: ui-atmosphere.
+   ProgressRail — one thin campaign line. Owner: ui-atmosphere.
    Animated properties: transform, opacity, translate only.
 
    `--pr-p` (0..1, set inline by React) is the single source of truth:
-   the fill scales by it, the head slot translates by it, and both run the
-   same 900ms transition so the dot can never drift off the fill's edge.
+   the fill scales by it and the head slot translates by it on the same
+   900ms curve, so the dot can never drift off the fill's edge.
    ============================================================ */
 
 .pr {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--sp-2);
   width: 100%;
+  min-width: 0;
   text-align: left;
   /* Entrance rides the independent `translate` property so it cannot fight
      the scaleX on the fill. `backwards` holds the rail invisible through the
-     500ms delay, then hands the property back with no jump. */
-  animation: pr-enter 800ms var(--ease-out) 500ms backwards;
+     delay, then hands the property back with no jump. */
+  animation: pr-enter 700ms var(--ease-out) 420ms backwards;
 }
 
-/* Entrance: opacity + translate only. */
 @keyframes pr-enter {
   from {
     opacity: 0;
-    translate: 0 18px;
+    translate: 0 14px;
   }
 
   to {
@@ -32,8 +32,6 @@
   }
 }
 
-/* The rail fills up once on load; the head travels with it. Both are pure
-   transforms off the same curve so they stay on top of each other. */
 @keyframes pr-fill-in {
   from {
     transform: scaleX(0);
@@ -60,54 +58,24 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 16px;
-}
-
-.pr__meta-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
+  gap: var(--sp-3);
   color: var(--ink-faint);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.2em;
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-.pr__meta-label::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--cyan-soft);
-  box-shadow: 0 0 10px var(--cyan-soft);
-  animation: pr-dot-breathe 3.4s ease-in-out infinite;
-}
-
-/* Live dot: a slow breath, transform + opacity only (never width/height). */
-@keyframes pr-dot-breathe {
-  0%,
-  100% {
-    opacity: 0.72;
-    transform: scale(0.86);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1.12);
-  }
+.pr__meta-label {
+  min-width: 0;
 }
 
 .pr__meta-value {
-  display: inline-flex;
-  align-items: baseline;
-  justify-content: flex-end;
-  min-width: 3.4ch;
+  flex: none;
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: clamp(1.05rem, 2.1vw, 1.32rem);
+  font-size: var(--fs-sm);
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -117,185 +85,57 @@
 .pr__pct {
   display: inline-flex;
   align-items: baseline;
-  font: inherit;
-  letter-spacing: inherit;
-  color: inherit;
 }
 
 .pr__pct-sign {
-  font: inherit;
   letter-spacing: 0;
-  color: inherit;
 }
 
-/* ---------- track + rail ---------- */
+/* ---------- track ---------- */
 
 .pr__track {
   position: relative;
-  margin: 2px 0;
 }
 
 .pr__rail {
   position: relative;
-  height: 10px;
-  border: 1px solid var(--stroke);
+  height: 2px;
   border-radius: var(--r-pill);
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--bg-0) 62%, transparent),
-      color-mix(in srgb, var(--bg-2) 78%, transparent)
-    );
-  box-shadow:
-    inset 0 1px 3px color-mix(in srgb, var(--bg-0) 82%, transparent),
-    inset 0 0 0 1px color-mix(in srgb, var(--ink) 3%, transparent);
+  /* Fallback first: browsers without color-mix keep a visible hairline. */
+  background: var(--stroke);
+  background: color-mix(in srgb, var(--ink) 13%, transparent);
 }
 
 .pr__fill {
   position: absolute;
   inset: 0;
-  overflow: hidden;
   border-radius: inherit;
   transform-origin: left center;
   /* The whole fill is one scaled box: never width, never left. */
   transform: scaleX(var(--pr-p, 0));
-  transition: transform 900ms var(--ease-spring);
-  /* Fill-up on load. `--ease-out` here, not the spring token: the rail starts
-     at 0 and an overshooting curve would push a full-length (p = 1) fill past
-     the rail's right cap. Per-tick deltas are a fraction of a percent, so the
-     spring transition above cannot overshoot into a visible bleed. */
+  transition: transform 900ms var(--ease-out);
   animation: pr-fill-in 900ms var(--ease-out) 500ms backwards;
-  will-change: transform;
+  /* Solid token first, gradient only where color-mix() is understood. */
+  background: var(--violet-soft);
   background: linear-gradient(
     90deg,
-    var(--violet) 0%,
-    var(--cyan) 34%,
-    var(--pink) 68%,
-    var(--amber) 100%
+    color-mix(in srgb, var(--violet) 22%, transparent),
+    var(--violet-soft)
   );
-  box-shadow:
-    0 0 18px -2px color-mix(in srgb, var(--violet) 70%, transparent),
-    0 0 26px -6px color-mix(in srgb, var(--cyan) 60%, transparent);
 }
 
-/* glass sheen along the top edge of the fill */
-.pr__fill::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in srgb, var(--ink) 70%, transparent) 45%,
-    transparent
-  );
-  opacity: 0.75;
-}
-
-.pr__shimmer {
-  position: absolute;
-  top: -50%;
-  bottom: -50%;
-  left: 0;
-  width: 36%;
-  background: linear-gradient(
-    100deg,
-    transparent,
-    color-mix(in srgb, var(--ink) 72%, transparent) 50%,
-    transparent
-  );
-  mix-blend-mode: screen;
-  opacity: 0.5;
-  transform: translateX(-150%) skewX(-18deg);
-  animation: pr-shimmer 3.8s var(--ease-out) infinite;
-  will-change: transform;
-}
-
-@keyframes pr-shimmer {
-  0% {
-    transform: translateX(-150%) skewX(-18deg);
-  }
-  60%,
-  100% {
-    transform: translateX(430%) skewX(-18deg);
-  }
-}
-
-/* ---------- 25 / 50 / 75 graduation marks ---------- */
-
-.pr__tick {
-  position: absolute;
-  top: -3px;
-  width: 1px;
-  height: 16px;
-  background: color-mix(in srgb, var(--ink) 22%, transparent);
-  z-index: 2;
-}
-
-/* A slow light wave travelling across the 25 / 50 / 75 graduations.
-   Opacity + scaleY only; the tick's `left` is set inline by React and stays put. */
-.pr__tick::after {
-  content: '';
-  position: absolute;
-  inset: -4px -2px;
-  border-radius: var(--r-pill);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--cyan-soft) 55%, transparent),
-    transparent 78%
-  );
-  opacity: 0.12;
-  pointer-events: none;
-  animation: pr-tick-glow 4.8s ease-in-out infinite;
-}
-
-.pr__rail .pr__tick:nth-of-type(1)::after {
-  animation-delay: 0s;
-}
-
-.pr__rail .pr__tick:nth-of-type(2)::after {
-  animation-delay: 0.7s;
-}
-
-.pr__rail .pr__tick:nth-of-type(3)::after {
-  animation-delay: 1.4s;
-}
-
-@keyframes pr-tick-glow {
-  0%,
-  100% {
-    opacity: 0.12;
-    transform: scaleY(0.82);
-  }
-
-  50% {
-    opacity: 0.55;
-    transform: scaleY(1.06);
-  }
-}
-
-/* ---------- glowing head dot ---------- */
-
-/* Inset by the rail's own 1px border, so this layer's width is exactly the
-   fill's width: `p * 100cqw` below lands the dot on the fill's leading edge
-   (p = 0 → the fill's left edge, p = 1 → its right edge). */
+/* Dot layer: exactly as wide as the rail, so `p * 100cqw` lands the dot on
+   the fill's leading edge (p = 0 → left edge, p = 1 → right edge). */
 .pr__head-layer {
   position: absolute;
   top: 0;
-  left: 1px;
-  right: 1px;
-  height: 10px;
+  left: 0;
+  right: 0;
+  height: 2px;
   pointer-events: none;
-  z-index: 3;
   container-type: inline-size;
 }
 
-/* A zero-width slot parked on the left edge, shifted by the same ratio and the
-   same transition as the fill. Container units (`cqw`) give an exact
-   percentage-of-track length, so translating (never resizing) keeps the head
-   welded to the fill for every frame of the 900ms move, touches no layout
-   property, and leaves no oversized box hanging past the rail. */
 .pr__head-slot {
   position: absolute;
   top: 0;
@@ -303,171 +143,32 @@
   left: 0;
   width: 0;
   transform: translateX(calc(var(--pr-p, 0) * 100cqw));
-  transition: transform 900ms var(--ease-spring);
+  transition: transform 900ms var(--ease-out);
   animation: pr-head-in 900ms var(--ease-out) 500ms backwards;
-  will-change: transform;
 }
 
 .pr__head {
   position: absolute;
   top: 50%;
   left: 0;
-  width: 14px;
-  height: 14px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  background: radial-gradient(
-    circle at 34% 28%,
-    var(--ink) 0%,
-    var(--cyan-soft) 42%,
-    var(--violet-soft) 82%
-  );
-  box-shadow:
-    0 0 12px color-mix(in srgb, var(--cyan-soft) 85%, transparent),
-    0 0 26px color-mix(in srgb, var(--violet) 75%, transparent);
-}
-
-.pr__head::after {
-  content: '';
-  position: absolute;
-  inset: -8px;
-  border-radius: 50%;
-  border: 1px solid color-mix(in srgb, var(--cyan-soft) 70%, transparent);
-  animation: pr-head-pulse 2.4s var(--ease-out) infinite;
-}
-
-@keyframes pr-head-pulse {
-  0% {
-    transform: scale(0.5);
-    opacity: 0.9;
-  }
-  70%,
-  100% {
-    transform: scale(1.9);
-    opacity: 0;
-  }
-}
-
-/* Inner core breath: a slower halo under the existing 2.4s ring, so the head
-   reads as a live instrument rather than a metronome. Transform + opacity only. */
-.pr__head::before {
-  content: '';
-  position: absolute;
-  inset: -70%;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--cyan-soft) 55%, transparent),
-    transparent 70%
-  );
-  opacity: 0.45;
-  pointer-events: none;
-  animation: pr-head-core 3.2s ease-in-out infinite;
-}
-
-@keyframes pr-head-core {
-  0%,
-  100% {
-    opacity: 0.32;
-    transform: scale(0.86);
-  }
-
-  50% {
-    opacity: 0.72;
-    transform: scale(1.12);
-  }
-}
-
-/* ---------- dates under the rail ---------- */
-
-.pr__dates {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.pr__date {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-
-.pr__date--end {
-  align-items: flex-end;
-  text-align: right;
-}
-
-.pr__date-label {
-  color: var(--ink-faint);
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.pr__date-value {
-  color: var(--ink-dim);
-  font-size: 0.78rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  background: var(--violet-soft);
+  box-shadow: 0 0 10px var(--violet-soft);
 }
 
 /* ---------- expired ---------- */
 
-.pr--expired .pr__meta-label::before {
+.pr--expired .pr__head {
   background: var(--success);
   box-shadow: 0 0 10px var(--success);
 }
 
-/* The head's ambient halo joins the success tone and the sweep calms down. */
-.pr--expired .pr__head::before {
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--success) 60%, transparent),
-    transparent 70%
-  );
-}
-
-.pr--expired .pr__shimmer {
-  animation-duration: 6.5s;
-  opacity: 0.34;
-}
-
-/* ---------- mobile ---------- */
-
-@media (max-width: 720px) {
-  .pr {
-    gap: 10px;
-  }
-
-  .pr__meta-label {
-    font-size: 0.62rem;
-    letter-spacing: 0.16em;
-  }
-
-  .pr__date-label {
-    font-size: 0.56rem;
-    letter-spacing: 0.14em;
-  }
-
-  .pr__date-value {
-    font-size: 0.7rem;
-    letter-spacing: 0.05em;
-  }
-
-  .pr__tick {
-    height: 14px;
-    top: -2px;
-  }
-}
-
-/* ---------- reduced motion ---------- */
-
-/* Also driven by the reactive JS hook, so a mid-session preference flip takes
-   effect on the very next render. The media query below covers first paint. */
+/* ---------- reduced motion ----------
+   Also driven by the reactive JS hook, so a mid-session preference flip takes
+   effect on the very next render. The media query covers first paint. */
 .pr--still,
 .pr--still .pr__fill,
 .pr--still .pr__head-slot {
@@ -481,33 +182,5 @@
   .pr__head-slot {
     animation: none;
     transition: none;
-  }
-
-  .pr__shimmer,
-  .pr--expired .pr__shimmer {
-    animation: none;
-    opacity: 0;
-  }
-
-  .pr__head::after {
-    animation: none;
-    opacity: 0.35;
-    transform: scale(1.35);
-  }
-
-  /* New micro-motion: static halos, no breathing. */
-  .pr__head::before {
-    animation: none;
-    opacity: 0.45;
-    transform: none;
-  }
-
-  .pr__tick::after {
-    animation: none;
-    opacity: 0.2;
-  }
-
-  .pr__meta-label::before {
-    animation: none;
   }
 }

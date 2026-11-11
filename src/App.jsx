@@ -35,9 +35,10 @@ export default function App() {
 
       <main className="stage">
         <header className="hero">
-          <div className="hero__float">
-            <h1 className="hero__title">{TARGET_LABEL}</h1>
-          </div>
+          <h1 className="hero__title">
+            <span className="sr-only">Đếm ngược tới </span>
+            {TARGET_LABEL}
+          </h1>
 
           <p className="hero__sub">
             {isExpired

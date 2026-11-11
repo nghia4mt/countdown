@@ -256,7 +256,7 @@
   border: 0;
   border-radius: var(--r-pill);
   background: linear-gradient(120deg, var(--violet-soft), var(--cyan-soft) 56%, var(--pink-soft));
-  color: var(--bg-0);
+  color: var(--ink-inverse);
   font-family: var(--font-body);
   font-size: 0.96rem;
   font-weight: 600;

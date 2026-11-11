@@ -1,76 +1,72 @@
 /* ============================================================
-   CountdownGrid — 3-up symmetric (days / hours / minutes) at every
-   breakpoint. Owner: ui-digits. Never 2 columns: that leaves a
-   dangling card on the second row. Below 400px the card type scales
-   down instead, so three two-digit values still fit uncropped.
-   No separators: the cards carry the composition.
+   CountdownGrid — one glass slab, three segments. Owner: ui-digits.
+   The slab is a size container: the digits scale from its own width
+   (cqw), so the 360–430px phone and the 870px desktop column keep the
+   same composition without a breakpoint ladder.
    ============================================================ */
 
 .cg {
+  container-type: inline-size;
+  position: relative;
   width: 100%;
   min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--stroke);
+  border-radius: var(--r-xl);
+  background: var(--glass);
+  box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  animation: cg-enter 800ms var(--ease-out) 140ms backwards;
+}
+
+/* Entrance: opacity + translate only. The slab lands as one object; the
+   segments do not stagger, so the digits are never read mid-move. */
+@keyframes cg-enter {
+  from {
+    opacity: 0;
+    translate: 0 24px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
 }
 
 .cg__grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1.45fr 1fr 1fr;
   align-items: stretch;
-  gap: clamp(10px, 1.35vw, 20px);
   width: 100%;
   min-width: 0;
 }
 
-@media (max-width: 719px) {
-  .cg__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: clamp(8px, 2.2vw, 16px);
-  }
+/* Hairline dividers between segments, drawn by the segments themselves so
+   the slab keeps a single border and a single radius. */
+.cg__grid > .cc + .cc {
+  border-left: 1px solid var(--stroke);
 }
 
-/* Narrow phones: three 2-digit odometers in ~100px columns. Shrink the card's
-   own type and inline padding (declared here, scoped to this grid) instead of
-   dropping to a lopsided 2+1 layout. The card's own 380px rule only tightens
-   padding to 6px, which is not enough once the column is a third of the row. */
-@media (max-width: 400px) {
-  .cg__grid > .cc {
-    padding-inline: 4px;
+/* ---------- no live blur on phones / touch ----------
+   The slab sits on the animated WebGL nebula, so every frame the compositor
+   re-samples and blurs the backdrop. Dropping the filter is only acceptable
+   because the base gets denser: the same surface tokens keep the digits
+   legible over moving stars. */
+@media (max-width: 720px), (pointer: coarse) {
+  .cg {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-2) 62%, var(--glass-hi)),
+      color-mix(in srgb, var(--bg-1) 92%, var(--glass))
+    );
   }
-
-  .cg__grid > .cc .cc__digits {
-    font-size: clamp(1.9rem, 9.4vw, 2.7rem);
-    letter-spacing: -0.06em;
-  }
-
-  .cg__grid > .cc .cc__label {
-    font-size: 0.58rem;
-    letter-spacing: 0.16em;
-  }
-}
-
-/* ---------- staggered aura breathing ----------
-   The grid owns the rhythm, the card owns the keyframes: each card gets its own
-   phase (negative delay = already mid-cycle on first paint) and a slightly
-   different period, so the three auras never pulse in unison. Only custom
-   properties are declared here — no visual property is overridden. */
-
-.cg__grid > .cc:nth-child(1) {
-  --cc-aura-delay: 0s;
-  --cc-aura-dur: 6.8s;
-}
-
-.cg__grid > .cc:nth-child(2) {
-  --cc-aura-delay: -1.9s;
-  --cc-aura-dur: 7.2s;
-}
-
-.cg__grid > .cc:nth-child(3) {
-  --cc-aura-delay: -3.4s;
-  --cc-aura-dur: 7.6s;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cg__grid > .cc {
-    --cc-aura-delay: 0s;
-    --cc-aura-dur: 0s;
+  .cg {
+    animation: none;
   }
 }

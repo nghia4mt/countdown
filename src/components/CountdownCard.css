@@ -1,230 +1,113 @@
 /* ============================================================
-   CountdownCard — glass odometer card. Owner: ui-digits.
-   Static surface: the card has no hover state and no continuous
-   animation, only the one-shot entrance below.
+   CountdownCard — one segment of the slab. Owner: ui-digits.
+   The number is the subject: it scales from the slab's own width,
+   sits top-left, and the unit row is pinned to the bottom so the three
+   labels line up even though days is set larger than hours/minutes.
    ============================================================ */
 
 .cc {
   position: relative;
-  isolation: isolate;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(6px, 0.9vw, 12px);
+  justify-content: space-between;
+  gap: var(--sp-3);
   min-width: 0;
-  padding: clamp(18px, 2.4vw, 32px) clamp(8px, 1.3vw, 18px) clamp(14px, 2vw, 24px);
-  overflow: hidden;
-  border: 1px solid var(--stroke);
-  border-radius: var(--r-xl);
-  background-color: var(--glass);
-  background-image:
-    radial-gradient(
-      120% 100% at 50% -30%,
-      color-mix(in srgb, var(--accent) 18%, transparent),
-      transparent 62%
-    ),
-    linear-gradient(
-      180deg,
-      var(--glass-hi),
-      color-mix(in srgb, var(--glass) 55%, transparent) 46%,
-      var(--glass)
-    );
-  box-shadow:
-    var(--shadow),
-    inset 0 1px 0 var(--stroke-hi);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  backdrop-filter: blur(12px) saturate(140%);
-  /* Entrance only: `backwards` keeps the card invisible through its stagger
-     delay, then hands the property back to this rule — the last keyframe equals
-     the base value, so nothing jumps on hand-off. */
-  animation: cc-enter 800ms var(--ease-out) backwards;
-  animation-delay: calc(var(--cc-i, 0) * 80ms);
+  /* Viewport fallback first; container units refine it where supported. */
+  padding: clamp(18px, 3.2vw, 36px) clamp(14px, 2.6vw, 30px);
+  padding: clamp(18px, 3.2cqw, 36px) clamp(14px, 2.6cqw, 30px);
 }
 
-/* ---------- entrance ----------
-   Opacity + translate only (no blur: three cards entering at once made the
-   filter the most expensive thing on the first frames). */
-
-@keyframes cc-enter {
-  from {
-    opacity: 0;
-    translate: 0 28px;
-  }
-
-  to {
-    opacity: 1;
-    translate: 0 0;
-  }
+/* Unit colour roles: one solid accent per segment, all sourced from the root
+   tokens. Wireframe A keeps the digits flat — no gradient text. */
+.cc[data-unit='days'] {
+  --u: var(--unit-days);
 }
 
-/* ---------- ambient accent layers (static) ---------- */
-
-.cc__aura {
-  position: absolute;
-  inset: -28% -16% 6%;
-  z-index: 0;
-  border-radius: 50%;
-  background: radial-gradient(
-    58% 52% at 50% 42%,
-    color-mix(in srgb, var(--accent) 34%, transparent),
-    transparent 72%
-  );
-  opacity: 0.5;
-  pointer-events: none;
+.cc[data-unit='hours'] {
+  --u: var(--unit-hours);
 }
 
-.cc__ghost {
-  position: absolute;
-  right: -0.04em;
-  bottom: -0.18em;
-  z-index: 1;
-  font-family: var(--font-display);
-  font-size: clamp(3.6rem, 8vw, 7.5rem);
-  font-weight: 700;
-  line-height: 0.8;
-  letter-spacing: -0.06em;
-  background-image: linear-gradient(
-    158deg,
-    color-mix(in srgb, var(--accent) 62%, transparent),
-    transparent 76%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  opacity: 0.32;
-  pointer-events: none;
-  user-select: none;
+.cc[data-unit='minutes'] {
+  --u: var(--unit-minutes);
 }
 
-.cc__edge {
-  position: absolute;
-  inset: 0 14% auto;
-  height: 2px;
-  z-index: 3;
-  border-radius: var(--r-pill);
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in srgb, var(--accent) 80%, transparent) 42%,
-    var(--accent) 68%,
-    transparent
-  );
-  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 55%, transparent));
-  opacity: 0.9;
-  pointer-events: none;
-}
+/* ---------- digits ---------- */
 
-/* ---------- odometer digits ---------- */
-
+/* Solid unit colour. The rollers ride their own compositing layer
+   (transform on .odo__strip), so a background-clip: text gradient can never
+   reach the glyphs — it painted a stray fragment and left the numbers
+   transparent. Depth is one cheap drop-shadow instead. line-height matches the
+   roller's 1em box so the digits neither clip nor leave a hollow band. */
 .cc__digits {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2ch;
-  min-height: 1.1em;
+  display: block;
+  min-width: 0;
   font-family: var(--font-display);
-  font-size: clamp(2.7rem, 6vw, 5.6rem);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.045em;
-  font-variant-numeric: tabular-nums;
-  color: var(--accent);
-  /* Accent glow + a 1px light/dark bevel, so the glyphs read as lit glass. */
-  text-shadow:
-    0 -1px 0 color-mix(in srgb, var(--accent) 42%, var(--ink)),
-    0 1px 0 color-mix(in srgb, var(--accent) 36%, var(--bg-0)),
-    0 0 30px color-mix(in srgb, var(--accent) 46%, transparent);
-}
-
-/* The roller mechanic lives in Odometer.css: every column is a fixed 1ch × 1em
-   window holding the ten faces, so a digit swap only moves a transform and the
-   card never reflows. */
-
-/* ---------- label + state ---------- */
-
-.cc__label {
-  position: relative;
-  z-index: 2;
-  color: var(--ink-dim);
-  font-family: var(--font-body);
-  font-size: clamp(0.62rem, 0.95vw, 0.78rem);
+  font-size: clamp(46px, 11vw, 128px);
+  font-size: clamp(46px, 12.4cqw, 128px);
   font-weight: 600;
   line-height: 1;
-  letter-spacing: 0.28em;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+  color: var(--u);
+  filter: drop-shadow(0 0 22px color-mix(in srgb, var(--u) 34%, transparent));
+}
+
+/* Days is the hero of the three; hours and minutes step down one level. */
+.cc[data-unit='hours'] .cc__digits,
+.cc[data-unit='minutes'] .cc__digits {
+  font-size: clamp(34px, 6.6vw, 78px);
+  font-size: clamp(34px, 7.4cqw, 78px);
+}
+
+/* ---------- unit row ---------- */
+
+.cc__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--ink-dim);
+  font-family: var(--font-body);
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
-/* ---------- expired ---------- */
-
-.cc--expired .cc__aura {
-  opacity: 0.22;
-  /* Success tint: the countdown is done, so the ambient light turns calm green
-     (same token the rail uses for its expired marker). */
-  background: radial-gradient(
-    58% 52% at 50% 42%,
-    color-mix(in srgb, var(--success) 30%, transparent),
-    transparent 72%
-  );
+.cc__label::before {
+  content: '';
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--u);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--u) 90%, transparent);
 }
 
+/* ---------- expired ----------
+   The rollers already hold two fixed columns, so 00 / 00 / 00 keeps the
+   slab's height and width; the state only calms the colour down. */
+
 .cc--expired .cc__digits {
-  opacity: 0.82;
+  /* DESIGN_CONTRACT: expired digits keep >= 0.82 opacity so the numbers stay
+     readable as numerals, not as decoration. */
+  opacity: 0.84;
+  filter: saturate(0.7);
 }
 
 .cc--expired .cc__label {
-  opacity: 0.72;
+  opacity: 0.86;
 }
 
-.cc--expired .cc__edge {
-  opacity: 0.5;
-}
-
-/* ---------- small screens ---------- */
-
-@media (max-width: 380px) {
+/* ---------- narrow phones ----------
+   At 360px the slab is ~328px wide: one step tighter inline padding buys the
+   digits room without changing the type scale. */
+@media (max-width: 400px) {
   .cc {
-    padding-inline: 6px;
+    padding-inline: var(--sp-3);
   }
 
   .cc__label {
-    letter-spacing: 0.2em;
-  }
-}
-
-/* ---------- no live blur on phones / touch ----------
-   The card sits on the animated WebGL nebula, so every frame the compositor
-   re-samples and blurs the backdrop — the single most expensive paint on mobile.
-   Dropping it is only acceptable because the base gets denser: the same surface
-   tokens, mixed to ~0.9 alpha, keep the digits legible over moving stars.
-   Placed after the base `.cc` rule so the media query wins the cascade. */
-
-@media (max-width: 720px), (pointer: coarse) {
-  .cc {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background-color: color-mix(in srgb, var(--bg-1) 90%, var(--glass));
-    background-image:
-      radial-gradient(
-        120% 100% at 50% -30%,
-        color-mix(in srgb, var(--accent) 16%, transparent),
-        transparent 62%
-      ),
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--bg-2) 74%, var(--glass-hi)),
-        color-mix(in srgb, var(--bg-1) 92%, var(--glass)) 46%,
-        color-mix(in srgb, var(--bg-1) 90%, var(--glass))
-      );
-  }
-}
-
-/* ---------- reduced motion ---------- */
-
-@media (prefers-reduced-motion: reduce) {
-  .cc {
-    animation: none;
+    letter-spacing: 0.12em;
   }
 }

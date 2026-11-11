@@ -1,6 +1,8 @@
 /* ============================================================
    App shell — layout, hero, actions. Owner: Lead.
-   Every animated property is transform / opacity only.
+   Wireframe A "Một khối số": the date reads as an eyebrow, the slab
+   carries the digits and the rail is one thin line. The stage is one
+   left-aligned 870px column; only transform / opacity animate.
    ============================================================ */
 
 .app {
@@ -11,7 +13,7 @@
   grid-template-columns: minmax(0, 1fr);
   place-items: center;
   min-height: 100dvh;
-  padding: clamp(28px, 5vw, 64px) clamp(16px, 4vw, 48px);
+  padding: clamp(var(--sp-6), 5vw, var(--sp-8)) clamp(var(--sp-4), 4vw, 48px);
   overflow: hidden;
   isolation: isolate;
 }
@@ -21,12 +23,12 @@
   z-index: var(--z-content);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: clamp(26px, 3.6vw, 44px);
+  align-items: stretch;
+  gap: clamp(var(--sp-5), 3.2vw, var(--sp-7));
   width: 100%;
-  max-width: 1060px;
+  max-width: 870px;
   min-width: 0;
-  text-align: center;
+  text-align: left;
 }
 
 /* ---------- hero ---------- */
@@ -34,94 +36,31 @@
 .hero {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  max-width: 920px;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  max-width: 100%;
+  animation: hero-in 0.8s var(--ease-out) 0.08s both;
 }
 
-/* Outer wrapper so the slow float never fights the title's one-shot entrance
-   or the sweep, which needs to clip inside `.hero__title`. */
-.hero__float {
-  animation: hero-float 6s ease-in-out 1.2s infinite alternate;
-  will-change: transform;
-}
-
-/* Static gradient: a looping background-position animation repaints the whole
-   heading every frame and violates the "compositor-only" contract rule. */
+/* The page title is the eyebrow itself: the date in small, tracked caps.
+   The accessible name is completed by an `.sr-only` "Đếm ngược tới" prefix. */
 .hero__title {
-  font-family: var(--font-display);
-  font-size: clamp(2.55rem, 8.4vw, 5.6rem);
-  font-weight: 700;
-  line-height: 0.92;
-  letter-spacing: -0.045em;
-  background-image: linear-gradient(
-    100deg,
-    var(--white) 0%,
-    var(--violet-soft) 30%,
-    var(--cyan-soft) 56%,
-    var(--pink-soft) 82%,
-    var(--white) 100%
-  );
-  background-size: 220% 100%;
-  background-position: 30% 50%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-wrap: balance;
-  animation: hero-in 0.9s var(--ease-out) 0.14s both;
-}
-
-/* One-shot light sweep across the headline. The gradient text above stays as
-   the paint source; this pseudo is a separate overlay translated on the
-   compositor, so the digits are readable from the very first frame. It runs
-   exactly once and parks off-frame — no infinite animation, no repaint. */
-.hero__title {
-  position: relative;
-  /* `clip` + margin keeps glyph overhang (negative tracking on the final "6")
-     visible while still clipping the sweep band. */
-  overflow: clip;
-  overflow-clip-margin: 0.08em;
-}
-
-.hero__title::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    105deg,
-    transparent 36%,
-    color-mix(in srgb, var(--white) 45%, transparent) 50%,
-    transparent 64%
-  );
-  /* Soft top/bottom ends so the band reads as a sheen, not a clipped
-     rectangle. Static mask only — nothing here is animated. */
-  -webkit-mask-image: linear-gradient(
-    180deg,
-    transparent 0%,
-    #000 26%,
-    #000 74%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    180deg,
-    transparent 0%,
-    #000 26%,
-    #000 74%,
-    transparent 100%
-  );
-  mix-blend-mode: overlay;
-  transform: translateX(-120%);
-  animation: hero-sweep 900ms var(--ease-out) 1050ms 1 both;
+  margin: 0;
+  color: var(--ink-dim);
+  font-family: var(--font-body);
+  font-size: clamp(var(--fs-2xs), 1.7vw, var(--fs-sm));
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
 }
 
 .hero__sub {
   max-width: 44ch;
   color: var(--ink-dim);
-  font-size: clamp(0.94rem, 1.6vw, 1.06rem);
+  font-size: var(--fs-sm);
   line-height: 1.65;
-  text-wrap: balance;
-  animation: hero-in 0.9s var(--ease-out) 0.21s both;
+  text-wrap: pretty;
 }
 
 /* ---------- actions ---------- */
@@ -129,8 +68,8 @@
 .actions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 14px;
+  justify-content: flex-start;
+  gap: var(--sp-3);
 }
 
 /* Reveal starts when the block actually becomes visible. Expiry auto-opens the
@@ -230,17 +169,6 @@
   }
 }
 
-/* Slow buoyancy on the headline. Transform only, and it starts after the
-   one-shot entrance (0.14s + 0.9s) has settled. */
-@keyframes hero-float {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-9px);
-  }
-}
-
 @keyframes actions-in {
   from {
     opacity: 0;
@@ -252,31 +180,16 @@
   }
 }
 
-/* Single pass, left to right. Transform only, and the end state leaves the
-   band fully outside the clipped box so nothing lingers over the digits. */
-@keyframes hero-sweep {
-  from {
-    transform: translateX(-120%);
-  }
-  to {
-    transform: translateX(120%);
-  }
-}
-
 /* ---------- responsive ---------- */
 
 @media (max-width: 720px) {
   .stage {
-    gap: 28px;
-  }
-
-  .hero {
-    gap: 16px;
+    gap: var(--sp-6);
   }
 
   .actions {
     width: 100%;
-    gap: 10px;
+    gap: var(--sp-2);
   }
 
   .btn {
@@ -288,15 +201,11 @@
 
 @media (max-width: 380px) {
   .app {
-    padding-block: 20px;
+    padding-block: var(--sp-5);
   }
 
   .stage {
-    gap: 22px;
-  }
-
-  .hero__title {
-    font-size: 2.35rem;
+    gap: var(--sp-5);
   }
 
   .btn {
@@ -308,22 +217,8 @@
 /* ---------- reduced motion ---------- */
 
 @media (prefers-reduced-motion: reduce) {
-  .hero__title,
-  .hero__sub {
+  .hero {
     animation: none;
-  }
-
-  .hero__float {
-    animation: none;
-    transform: none;
-    will-change: auto;
-  }
-
-  /* The sweep is decoration only; park it hidden rather than letting it snap
-     to a static band over the label. */
-  .hero__title::after {
-    animation: none;
-    opacity: 0;
   }
 
   .actions:not([data-celebrating]) {
@@ -334,6 +229,13 @@
 
   .btn {
     transition: none;
+    transform: none;
+  }
+
+  /* Hover/active rules are more specific than `.btn`, so they have to be
+     neutralised explicitly or the button still lifts under reduced motion. */
+  .btn:hover,
+  .btn:active {
     transform: none;
   }
 
